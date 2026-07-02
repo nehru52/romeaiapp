@@ -1,0 +1,61 @@
+/* Tor check */
+
+#tor-check {
+  position: absolute;
+  right: 30px;
+  width: auto;
+  margin: 0;
+}
+
+#tor-check a {
+  background: var(--medium-light-green) url("home/onion.png") no-repeat 20px;
+  padding-left: 60px;
+  padding-right: 30px;
+}
+
+#tor-check a:hover {
+  background-color: var(--medium-dark-green);
+}
+
+/* Random message box */
+
+.random-message {
+  display: none;
+  overflow: auto;
+  margin-bottom: 2em;
+  padding: 1em 2em 1em 2em;
+  background: var(--background-gray);
+  border: 1px solid var(--light-gray);
+  border-radius: 5px;
+  box-sizing: border-box;
+  box-shadow: var(--gray-button-shadow);
+  color: black;
+}
+
+.random-message p:last-child {
+  margin-bottom: 0;
+}
+
+.random-message h2:first-child {
+  margin-top: 0;
+}
+
+/* Survey message */
+
+.survey {
+  background: var(--background-purple) url("lib/survey.png") no-repeat top 50%
+    left 2em;
+  border: none;
+  padding-left: 9em;
+}
+
+.survey .answer {
+  background: var(--medium-light-green);
+  color: black;
+  font-weight: var(--font-weight-bold);
+  border-radius: 5px;
+  padding: 0.5em 0.25em;
+  text-align: center;
+  box-shadow: var(--green-button-shadow);
+  width: 100%;
+}

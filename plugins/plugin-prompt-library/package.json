@@ -1,0 +1,68 @@
+{
+  "name": "@elizaos/plugin-prompt-library",
+  "version": "2.0.3-beta.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "description": "Comprehensive AI prompt library for all Rome Travel Agency models",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elizaos/elizaos.git"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*.css": "./dist/*.css",
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/bun": "^1.2.22",
+    "@types/node": "^24.5.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "scripts": {
+    "build": "bun run build.ts && tsc --emitDeclarationOnly",
+    "build:ts": "bun run build.ts",
+    "dev": "bun --hot build.ts",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo .turbo-tsconfig.json tsconfig.tsbuildinfo",
+    "format": "bunx @biomejs/biome format --write .",
+    "format:check": "bunx @biomejs/biome format .",
+    "lint": "bunx @biomejs/biome check --write --unsafe .",
+    "lint:check": "bunx @biomejs/biome check .",
+    "typecheck": "tsgo --noEmit"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "eliza": {
+    "platforms": [
+      "node"
+    ],
+    "runtime": "node",
+    "platformDetails": {
+      "node": "Default export (Node.js)"
+    }
+  }
+}

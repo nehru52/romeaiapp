@@ -1,0 +1,51 @@
+# Optimus SaaS — Full Stack with Docker Compose
+# Start everything: docker compose up -d
+# View logs:        docker compose logs -f
+# Stop everything:  docker compose down
+
+services:
+  # ── API Server (Bun + Hono) ──────────────────────────────────────
+  api:
+    build:
+      context: ./packages/saas-core
+      dockerfile: Dockerfile
+    container_name: optimus-api
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      - PORT=3001
+      - DASHBOARD_URL=http://dashboard:3000
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:3001/api/health').then(r=>r.ok?process.exit(0):process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Dashboard (Next.js) ──────────────────────────────────────────
+  dashboard:
+    build:
+      context: ./packages/dashboard
+      dockerfile: Dockerfile
+    container_name: optimus-dashboard
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://api:3001
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ── Optional: Watchtower auto-updates containers ─────────────────
+  watchtower:
+    image: containrrr/watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 optimus-api optimus-dashboard
+    profiles:
+      - production

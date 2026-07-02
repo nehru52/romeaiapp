@@ -1,0 +1,110 @@
+{
+  "name": "@elizaos/plugin-image-generation",
+  "version": "2.0.3-beta.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "description": "Multi-model image generation router for Rome travel agency content",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elizaos/elizaos.git"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*.css": "./dist/*.css",
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/bun": "^1.2.22",
+    "@types/node": "^24.5.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "scripts": {
+    "build": "bun run build.ts && tsc --emitDeclarationOnly",
+    "build:ts": "bun run build.ts",
+    "dev": "bun --hot build.ts",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo .turbo-tsconfig.json tsconfig.tsbuildinfo",
+    "format": "bunx @biomejs/biome format --write .",
+    "format:check": "bunx @biomejs/biome format .",
+    "lint": "bunx @biomejs/biome check --write --unsafe .",
+    "lint:check": "bunx @biomejs/biome check .",
+    "typecheck": "tsgo --noEmit"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "agentConfig": {
+    "pluginType": "elizaos:plugin:1.0.0",
+    "pluginParameters": {
+      "FLUX_API_KEY": {
+        "type": "string",
+        "description": "Black Forest Labs API key for FLUX.2 Pro image generation",
+        "required": false,
+        "sensitive": true
+      },
+      "IDEOGRAM_API_KEY": {
+        "type": "string",
+        "description": "Ideogram API key for text-heavy carousel generation",
+        "required": false,
+        "sensitive": true
+      },
+      "SEEDREAM_API_KEY": {
+        "type": "string",
+        "description": "Seedream API key for brand-consistent UGC and character reference images",
+        "required": false,
+        "sensitive": true
+      },
+      "IMAGEN_API_KEY": {
+        "type": "string",
+        "description": "Google Imagen 4 Ultra API key for premium brand assets",
+        "required": false,
+        "sensitive": true
+      },
+      "GROK_API_KEY": {
+        "type": "string",
+        "description": "xAI Grok API key for fast Stories and behind-the-scenes content",
+        "required": false,
+        "sensitive": true
+      },
+      "IMAGE_MONTHLY_BUDGET": {
+        "type": "string",
+        "description": "Monthly image generation budget in USD",
+        "required": false,
+        "default": "50",
+        "sensitive": false
+      }
+    }
+  },
+  "eliza": {
+    "platforms": [
+      "node"
+    ],
+    "runtime": "node",
+    "platformDetails": {
+      "node": "Default export (Node.js)"
+    }
+  }
+}

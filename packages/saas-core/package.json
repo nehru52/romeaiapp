@@ -1,0 +1,66 @@
+{
+  "name": "@elizaos/saas-core",
+  "version": "1.0.0-beta.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "description": "Multi-tenant SaaS platform — run social media automation for any business niche",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elizaos/elizaos.git"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@elizaos/core": "workspace:*",
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.22",
+    "@types/node": "^24.5.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "scripts": {
+    "build": "bun run build.ts && tsc --emitDeclarationOnly",
+    "build:ts": "bun run build.ts",
+    "dev": "bun --hot build.ts",
+    "start": "bun run src/server.ts",
+    "dev:server": "bun --hot run src/server.ts",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo",
+    "format": "bunx @biomejs/biome format --write .",
+    "lint": "bunx @biomejs/biome check --write --unsafe .",
+    "typecheck": "tsgo --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "eliza": {
+    "platforms": [
+      "node"
+    ],
+    "runtime": "node"
+  }
+}

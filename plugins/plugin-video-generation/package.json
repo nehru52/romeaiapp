@@ -1,0 +1,57 @@
+{
+  "name": "@elizaos/plugin-video-generation",
+  "version": "2.0.3-beta.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "biome check --write ."
+  },
+  "dependencies": {
+    "@elizaos/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.16"
+  },
+  "agentConfig": {
+    "pluginParameters": {
+      "VEO_API_KEY": {
+        "type": "string",
+        "description": "Veo 3.1 API key"
+      },
+      "KLING_API_KEY": {
+        "type": "string",
+        "description": "Kling 3.0 Pro API key"
+      },
+      "RUNWAY_API_KEY": {
+        "type": "string",
+        "description": "Runway Gen-4.5 API key"
+      },
+      "LUMA_API_KEY": {
+        "type": "string",
+        "description": "Luma Ray 3.14 API key"
+      },
+      "ELEVENLABS_API_KEY": {
+        "type": "string",
+        "description": "ElevenLabs API key"
+      },
+      "VIDEO_MONTHLY_BUDGET": {
+        "type": "number",
+        "default": 30,
+        "description": "Monthly video budget USD"
+      }
+    }
+  }
+}
