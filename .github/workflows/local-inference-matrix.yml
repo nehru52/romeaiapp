@@ -186,7 +186,7 @@ jobs:
           hf --help >/dev/null
 
       - name: Cache local-inference state (binaries + models)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ env.ELIZA_STATE_DIR }}/local-inference
           key: local-inference-${{ matrix.target }}-${{ env.SMOKE_MODEL_FILE }}
