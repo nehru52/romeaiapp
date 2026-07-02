@@ -15,7 +15,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.4.0",
+    "@electric-sql/pglite": "^0.5.4",
     "@elizaos/core": "workspace:*",
     "@elizaos/plugin-eliza-classic": "workspace:*",
     "@elizaos/plugin-sql": "workspace:*",
