@@ -57,7 +57,7 @@
     "typecheck": "tsgo --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.4.0",
+    "@electric-sql/pglite": "^0.5.4",
     "@napi-rs/keyring": "^1.1.6"
   },
   "devDependencies": {
