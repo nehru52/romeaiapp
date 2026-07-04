@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type React from "react";
 import "./globals.css";
-import { SidebarProvider } from "@/components/sidebar-provider";
+import { ClientProviders } from "@/components/client-providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sambo Admin Dashboard",
-  description: "Admin dashboard for Sambo wallet management",
-  generator: "v0.app",
+  title: "Optimus AI — Social Media Automation SaaS",
+  description: "Multi-tenant SaaS platform for AI-powered social media automation. Any business, any niche.",
 };
 
 export default function RootLayout({
@@ -20,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SidebarProvider>{children}</SidebarProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

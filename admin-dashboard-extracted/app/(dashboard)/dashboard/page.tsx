@@ -1,6 +1,14 @@
-import { UserPlusIcon, UsersIcon, UserXIcon, WalletIcon } from "lucide-react";
-import { DashboardChart } from "@/components/dashboard-chart";
-import { RecentTransactions } from "@/components/recent-transactions";
+/**
+ * SaaS Dashboard — social media automation overview.
+ * Shows content stats, scheduled posts, connected platforms, and AI usage.
+ */
+
+"use client";
+
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { CalendarDays, ImageIcon, MessageSquare, Share2, TrendingUp, Zap } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,236 +19,191 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      {/* Welcome header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Dashboard
+          Welcome back, {user.name.split(" ")[0]}
         </h1>
         <p className="text-muted-foreground">
-          Overview of your platform statistics and performance.
+          Your AI-powered social media command center.
         </p>
       </div>
 
-      <Tabs defaultValue="daily" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="daily" className="space-y-4">
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  New Users Today
-                </CardTitle>
-                <UserPlusIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">24</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from yesterday
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Users
-                </CardTitle>
-                <UsersIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1,284</div>
-                <p className="text-xs text-muted-foreground">
-                  +2.5% from last week
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Transactions Today
-                </CardTitle>
-                <WalletIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">R 12,543</div>
-                <p className="text-xs text-muted-foreground">
-                  +18% from yesterday
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Non-Users</CardTitle>
-                <UserXIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">342</div>
-                <p className="text-xs text-muted-foreground">
-                  -4% from yesterday
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="weekly" className="space-y-4">
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  New Users This Week
-                </CardTitle>
-                <UserPlusIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">156</div>
-                <p className="text-xs text-muted-foreground">
-                  +8% from last week
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Users
-                </CardTitle>
-                <UsersIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1,284</div>
-                <p className="text-xs text-muted-foreground">
-                  +2.5% from last week
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Transactions This Week
-                </CardTitle>
-                <WalletIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">R 87,651</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from last week
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Non-Users</CardTitle>
-                <UserXIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">342</div>
-                <p className="text-xs text-muted-foreground">
-                  -4% from last week
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="monthly" className="space-y-4">
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  New Users This Month
-                </CardTitle>
-                <UserPlusIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">642</div>
-                <p className="text-xs text-muted-foreground">
-                  +15% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Users
-                </CardTitle>
-                <UsersIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1,284</div>
-                <p className="text-xs text-muted-foreground">
-                  +2.5% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Transactions This Month
-                </CardTitle>
-                <WalletIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">R 324,845</div>
-                <p className="text-xs text-muted-foreground">
-                  +22% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Non-Users</CardTitle>
-                <UserXIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">342</div>
-                <p className="text-xs text-muted-foreground">
-                  -4% from last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Transaction Overview</CardTitle>
-            <CardDescription>Transaction volume over time</CardDescription>
+      {/* Stats grid */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Content Generated</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="pl-2">
-            <DashboardChart />
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Connect a platform to start generating</p>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>
-              Latest transactions on the platform
-            </CardDescription>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Scheduled Posts</CardTitle>
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <RecentTransactions />
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">No posts scheduled yet</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">AI Images Generated</CardTitle>
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Add FAL_KEY to enable image generation</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Platforms Connected</CardTitle>
+            <Share2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Set up your first platform</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="platforms">Platforms</TabsTrigger>
+            <TabsTrigger value="ai-usage">AI Usage</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Getting Started</CardTitle>
+                <CardDescription>Follow these steps to launch your automation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ol className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">1</span>
+                    <span><strong className="text-foreground">Complete onboarding</strong> — tell us about your business and niche</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">2</span>
+                    <span><strong className="text-foreground">Connect a platform</strong> — Instagram, TikTok, or any social channel</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">3</span>
+                    <span><strong className="text-foreground">Set your schedule</strong> — choose how many posts per day</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">4</span>
+                    <span><strong className="text-foreground">Generate content</strong> — AI creates scroll-stopping posts</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">5</span>
+                    <span><strong className="text-foreground">Approve & publish</strong> — review in Telegram or dashboard, then go live</span>
+                  </li>
+                </ol>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Powered by AI</CardTitle>
+                <CardDescription>Your automation stack</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+                    <Zap className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <p className="font-medium text-foreground">Viral Content Engine</p>
+                      <p className="text-muted-foreground">Reverse-engineers top-performing content in your niche</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="font-medium text-foreground">Trend Detection</p>
+                      <p className="text-muted-foreground">Identifies rising hashtags and content patterns</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+                    <ImageIcon className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <p className="font-medium text-foreground">AI Image Generation</p>
+                      <p className="text-muted-foreground">Photorealistic images via FLUX, optimized per platform</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="platforms">
+          <Card>
+            <CardHeader>
+              <CardTitle>Connected Platforms</CardTitle>
+              <CardDescription>Instagram, TikTok, Pinterest, and more</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                No platforms connected yet. Generate content via the API endpoint{" "}
+                <code className="text-xs bg-accent px-1.5 py-0.5 rounded">POST /api/content/generate</code>{" "}
+                and your content will appear here.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-usage">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Usage</CardTitle>
+              <CardDescription>Token usage and cost estimates</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                AI usage tracking will appear here once you start generating content.
+                Set <code className="text-xs bg-accent px-1.5 py-0.5 rounded">OPENAI_API_KEY</code>{" "}
+                to enable DeepSeek-powered content generation (~$0.001 per post).
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

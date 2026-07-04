@@ -2,23 +2,33 @@
 
 import {
   BarChart3,
+  CalendarDays,
   HelpCircle,
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   Settings,
+  TrendingUp,
   Users,
-  Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-provider";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, toggle } = useSidebar();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <>
@@ -39,7 +49,7 @@ export function Sidebar() {
         )}
       >
         <div className="flex h-14 items-center border-b px-4">
-          <span className="text-lg font-semibold">Sambo Admin</span>
+          <span className="text-lg font-semibold">Optimus AI</span>
           <Button
             variant="ghost"
             size="icon"
@@ -136,6 +146,15 @@ export function Sidebar() {
                 </div>
               ))}
             </nav>
+            <div className="mt-1 pt-1 border-t border-border">
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -145,9 +164,9 @@ export function Sidebar() {
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/users", icon: Users, badge: "8" },
-  { name: "Transactions", href: "/transactions", icon: Wallet },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Content", href: "/users", icon: MessageSquare },
+  { name: "Calendar", href: "/calendar", icon: CalendarDays },
+  { name: "Analytics", href: "/analytics", icon: TrendingUp },
 ];
 
 const footerItems = [
@@ -156,33 +175,11 @@ const footerItems = [
     href: "/settings",
     icon: Settings,
     subItems: [
-      {
-        name: "Profile",
-        href: "/settings/profile",
-        description: "Update your details",
-      },
-      {
-        name: "Security",
-        href: "/settings/security",
-        description: "Manage your password",
-      },
-      {
-        name: "Communication",
-        href: "/settings/communication",
-        description: "Email and phone",
-      },
-      {
-        name: "Permissions",
-        href: "/settings/permissions",
-        description: "Access control",
-      },
+      { name: "Profile", href: "/settings/profile", description: "Your details" },
+      { name: "Security", href: "/settings/security", description: "Password & 2FA" },
+      { name: "Notifications", href: "/settings/communication", description: "Email & SMS" },
+      { name: "Subscription", href: "/settings/permissions", description: "Plan & billing" },
     ],
   },
   { name: "Help", href: "/help", icon: HelpCircle, description: "Get support" },
-  {
-    name: "Logout",
-    href: "/logout",
-    icon: LogOut,
-    description: "Exit the app",
-  },
 ];
