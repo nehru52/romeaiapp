@@ -17,7 +17,7 @@ const PACKS = [
   { slug: "custom", name: "Custom / Other", icon: "⚡", desc: "Any business, any niche, any platform", color: "from-zinc-500/20 to-zinc-600/10", border: "border-zinc-500/20" },
 ];
 
-type Step = "niche" | "website" | "analyzing" | "done";
+type Step = "niche" | "describe" | "website" | "analyzing" | "done";
 
 export default function OnboardingPage() {
   const { user, isAuthenticated, isLoading, completeOnboarding } = useAuth();
@@ -28,6 +28,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [businessDescription, setBusinessDescription] = useState("");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace("/login");
@@ -35,6 +36,19 @@ export default function OnboardingPage() {
 
   const handleNicheSelect = (slug: string) => {
     setSelectedPack(slug);
+    setError(null);
+    if (slug === "custom") {
+      setStep("describe");
+    } else {
+      setStep("website");
+    }
+  };
+
+  const handleDescribeContinue = () => {
+    if (!businessDescription.trim()) {
+      setError("Please describe your business so we can generate tailored content.");
+      return;
+    }
     setError(null);
     setStep("website");
   };
@@ -48,7 +62,12 @@ export default function OnboardingPage() {
     try {
       await fetch("/api/onboarding/niche", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.userId, niche: selectedPack ?? "custom", packSlug: selectedPack ?? "custom" }),
+        body: JSON.stringify({
+          userId: user.userId,
+          niche: selectedPack ?? "custom",
+          packSlug: selectedPack ?? "custom",
+          ...(businessDescription ? { businessDescription } : {}),
+        }),
       });
       const res = await fetch("/api/onboarding/website", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -66,8 +85,8 @@ export default function OnboardingPage() {
   };
 
   const steps = [
-    { label: "Pick Niche", active: step === "niche", done: step !== "niche" },
-    { label: "Add Website", active: step === "website" || step === "analyzing", done: step === "done" },
+    { label: "Pick Niche", active: step === "niche", done: step !== "niche" && step !== "describe" },
+    { label: step === "describe" ? "Describe" : "Add Website", active: step === "describe" || step === "website" || step === "analyzing", done: step === "done" },
     { label: "Ready!", active: step === "done", done: false },
   ];
 
@@ -130,6 +149,34 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {step === "describe" && (
+            <div className="space-y-5">
+              <p className="text-center text-sm text-white/40 mb-2">
+                Tell us about your business — our AI will understand your niche and generate the right content for you
+              </p>
+              <textarea
+                placeholder="Describe your business: what you do, who your customers are, what makes you unique, and your brand voice..."
+                value={businessDescription}
+                onChange={(e) => setBusinessDescription(e.target.value)}
+                rows={5}
+                autoFocus
+                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-white placeholder:text-white/15 outline-none focus:border-white/20 transition-all resize-none"
+              />
+              {error && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {error}
+                </div>
+              )}
+              <button
+                onClick={handleDescribeContinue}
+                className="w-full py-3 rounded-xl bg-white text-black text-sm font-semibold hover:bg-white/90 transition-all duration-200"
+              >
+                Continue to Website
+              </button>
             </div>
           )}
 

@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  BarChart3,
   CalendarDays,
+  ChevronDown,
   HelpCircle,
   LayoutDashboard,
   LogOut,
@@ -10,10 +10,10 @@ import {
   MessageSquare,
   Settings,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,11 +24,14 @@ export function Sidebar() {
   const router = useRouter();
   const { isOpen, toggle } = useSidebar();
   const { logout } = useAuth();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    router.push("/");
   };
+
+  const isSettingsActive = pathname.startsWith("/settings");
 
   return (
     <>
@@ -68,83 +71,75 @@ export function Sidebar() {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                    pathname === item.href
+                    pathname === item.href || (item.href === "/users" && pathname.startsWith("/users"))
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
-                  {item.badge && (
-                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[0.625rem] font-medium text-primary-foreground">
-                      {item.badge}
-                    </span>
-                  )}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="border-t p-2">
             <nav className="grid gap-1">
-              {footerItems.map((item, index) => (
-                <div key={index}>
-                  {item.subItems ? (
-                    <div className="space-y-1">
+              {/* Settings — collapsible */}
+              <div>
+                <button
+                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
+                    isSettingsActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  <Settings className="h-5 w-5" />
+                  <span>Settings</span>
+                  <ChevronDown className={cn(
+                    "h-4 w-4 ml-auto transition-transform duration-200",
+                    settingsOpen && "rotate-180",
+                  )} />
+                </button>
+                <div className={cn(
+                  "overflow-hidden transition-all duration-200",
+                  settingsOpen ? "max-h-48 opacity-100 mt-1" : "max-h-0 opacity-0",
+                )}>
+                  <div className="pl-4 space-y-1 pb-1">
+                    {[
+                      { name: "Profile", href: "/settings/profile" },
+                      { name: "Security", href: "/settings/security" },
+                      { name: "Notifications", href: "/settings/communication" },
+                      { name: "Subscription", href: "/settings/permissions" },
+                    ].map((subItem, subIndex) => (
                       <Link
-                        href={item.href}
+                        key={subIndex}
+                        href={subItem.href}
+                        onClick={() => toggle()}
                         className={cn(
-                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                          pathname === item.href
+                          "flex items-center gap-3 rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
+                          pathname === subItem.href
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground",
                         )}
                       >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
+                        <span>{subItem.name}</span>
                       </Link>
-                      <div className="pl-4 space-y-1">
-                        {item.subItems.map((subItem, subIndex) => (
-                          <Link
-                            key={subIndex}
-                            href={subItem.href}
-                            className={cn(
-                              "flex items-center gap-3 rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
-                              pathname === subItem.href
-                                ? "bg-accent text-accent-foreground"
-                                : "text-muted-foreground",
-                            )}
-                          >
-                            <span>{subItem.name}</span>
-                            {subItem.description && (
-                              <span className="ml-auto text-xs text-muted-foreground">
-                                {subItem.description}
-                              </span>
-                            )}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                        pathname === item.href
-                          ? "bg-accent text-accent-foreground"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                      {item.description && (
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {item.description}
-                        </span>
-                      )}
-                    </Link>
-                  )}
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Help */}
+              <Link
+                href="/settings/profile"
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                  "text-muted-foreground",
+                )}
+              >
+                <HelpCircle className="h-5 w-5" />
+                <span>Help</span>
+              </Link>
             </nav>
             <div className="mt-1 pt-1 border-t border-border">
               <button
@@ -167,19 +162,4 @@ const navItems = [
   { name: "Content", href: "/users", icon: MessageSquare },
   { name: "Calendar", href: "/calendar", icon: CalendarDays },
   { name: "Analytics", href: "/analytics", icon: TrendingUp },
-];
-
-const footerItems = [
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-    subItems: [
-      { name: "Profile", href: "/settings/profile", description: "Your details" },
-      { name: "Security", href: "/settings/security", description: "Password & 2FA" },
-      { name: "Notifications", href: "/settings/communication", description: "Email & SMS" },
-      { name: "Subscription", href: "/settings/permissions", description: "Plan & billing" },
-    ],
-  },
-  { name: "Help", href: "/help", icon: HelpCircle, description: "Get support" },
 ];

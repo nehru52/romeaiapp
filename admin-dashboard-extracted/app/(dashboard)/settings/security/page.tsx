@@ -18,7 +18,10 @@ export default function SecuritySettingsPage() {
     const newPw = (form.elements.namedItem("new") as HTMLInputElement).value;
     const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
 
-    if (newPw.length < 4) { setMessage({ type: "error", text: "New password must be at least 4 characters." }); return; }
+    if (newPw.length < 8) { setMessage({ type: "error", text: "Password must be at least 8 characters." }); return; }
+    if (!/[A-Z]/.test(newPw)) { setMessage({ type: "error", text: "Password must include at least one uppercase letter." }); return; }
+    if (!/[0-9]/.test(newPw)) { setMessage({ type: "error", text: "Password must include at least one number." }); return; }
+    if (!/[^A-Za-z0-9]/.test(newPw)) { setMessage({ type: "error", text: "Password must include at least one symbol." }); return; }
     if (newPw !== confirm) { setMessage({ type: "error", text: "Passwords do not match." }); return; }
 
     try {

@@ -21,23 +21,24 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) { router.replace("/login"); return; }
-    // In production: fetch from API
-    const demoEvents: CalendarEvent[] = Array.from({ length: 8 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() + i * 2);
-      const platforms = ["instagram", "tiktok", "facebook", "pinterest"];
-      const types = ["carousel", "reel", "feed_post", "story"];
-      return {
-        id: `ev_${i}`,
-        date: d.toISOString(),
-        title: ["Summer Travel Tips", "Hidden Gems Guide", "Client Spotlight", "Behind the Scenes", "Weekly Special", "Expert Interview", "Top 10 List", "Seasonal Offer"][i]!,
-        platform: platforms[i % platforms.length]!,
-        status: (i < 3 ? "scheduled" : i < 6 ? "pending" : "published") as CalendarEvent["status"],
-        type: types[i % types.length]!,
-      };
-    });
-    setEvents(demoEvents);
-    setLoading(false);
+    // Fetch real content items from API and convert to calendar events
+    fetch("/api/content/demo-tenant")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data?.length > 0) {
+          const mapped: CalendarEvent[] = d.data.map((item: any, i: number) => ({
+            id: item.id ?? `ev_${i}`,
+            date: item.scheduledAt ?? item.createdAt ?? new Date().toISOString(),
+            title: item.title ?? "Untitled",
+            platform: item.platform ?? "instagram",
+            status: (item.status === "published" ? "published" : item.status === "scheduled" ? "scheduled" : "pending") as CalendarEvent["status"],
+            type: item.type ?? "feed_post",
+          }));
+          setEvents(mapped);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [isLoading, isAuthenticated, router]);
 
   const stats = useMemo(() => ({
@@ -57,7 +58,7 @@ export default function CalendarPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Content Calendar</h1>
           <p className="text-muted-foreground">Plan and schedule your social media content</p>
         </div>
-        <Button onClick={() => router.push("/dashboard")} size="sm">
+        <Button onClick={() => router.push("/generate")} size="sm">
           <Plus className="h-4 w-4 mr-1.5" /> Generate Content
         </Button>
       </div>

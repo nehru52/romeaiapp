@@ -58,13 +58,14 @@ export class WorkflowEngine {
     userId: string,
     niche: string,
     packSlug?: string,
+    businessDescription?: string,
   ): Promise<{
     onboarding: OnboardingState;
     pack: unknown;
   }> {
     const slug = packSlug ?? niche.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     // setNiche now auto-creates onboarding state (serverless resilience — never returns null)
-    const state = this.auth.setNiche(userId, niche, slug);
+    const state = this.auth.setNiche(userId, niche, slug, businessDescription);
 
     const pack =
       this.packs.getPack(slug) ??

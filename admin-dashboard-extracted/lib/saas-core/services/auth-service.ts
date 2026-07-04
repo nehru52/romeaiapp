@@ -19,6 +19,7 @@ export interface OnboardingState {
   step: "niche" | "website" | "done";
   selectedNiche: string | null;
   packSlug: string | null;
+  businessDescription: string | null;
   websiteUrl: string | null;
   websiteAnalysis: WebsiteAnalysis | null;
 }
@@ -93,6 +94,7 @@ export class AuthService {
       step: "niche",
       selectedNiche: null,
       packSlug: null,
+      businessDescription: null,
       websiteUrl: null,
       websiteAnalysis: null,
     });
@@ -128,6 +130,7 @@ export class AuthService {
       step: "niche",
       selectedNiche: null,
       packSlug: null,
+      businessDescription: null,
       websiteUrl: null,
       websiteAnalysis: null,
     };
@@ -140,10 +143,12 @@ export class AuthService {
     userId: string,
     niche: string,
     packSlug: string,
+    businessDescription?: string,
   ): OnboardingState {
     const state = this.ensureOnboardingState(userId);
     state.selectedNiche = niche;
     state.packSlug = packSlug;
+    state.businessDescription = businessDescription ?? null;
     state.step = "website";
     return { ...state };
   }

@@ -8,7 +8,8 @@
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { CalendarDays, ImageIcon, MessageSquare, Share2, TrendingUp, Zap } from "lucide-react";
+import { CalendarDays, ImageIcon, MessageSquare, Plus, Share2, TrendingUp, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, onboardingComplete } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,17 +40,22 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Welcome header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Welcome back, {user.name.split(" ")[0]}
-        </h1>
-        <p className="text-muted-foreground">
-          Your AI-powered social media command center.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Welcome back, {user.name.split(" ")[0]}
+          </h1>
+          <p className="text-muted-foreground">
+            Your AI-powered social media command center.
+          </p>
+        </div>
+        <Button onClick={() => router.push("/generate")} className="shrink-0">
+          <Plus className="h-4 w-4 mr-1.5" /> Generate Content
+        </Button>
       </div>
 
       {/* Stats grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Content Generated</CardTitle>
@@ -69,17 +75,6 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">No posts scheduled yet</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Images Generated</CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Add FAL_KEY to enable image generation</p>
           </CardContent>
         </Card>
 
@@ -114,9 +109,19 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <ol className="space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">1</span>
-                    <span><strong className="text-foreground">Complete onboarding</strong> — tell us about your business and niche</span>
+                  <li className={`flex items-start gap-3 ${onboardingComplete ? "opacity-60" : ""}`}>
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold shrink-0 ${
+                      onboardingComplete
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-primary text-primary-foreground"
+                    }`}>
+                      {onboardingComplete ? "✓" : "1"}
+                    </span>
+                    <span>
+                      <strong className={`${onboardingComplete ? "text-emerald-400/80" : "text-foreground"}`}>Complete onboarding</strong>
+                      {" "}— tell us about your business and niche
+                      {onboardingComplete && <span className="block text-[11px] text-emerald-500/60 mt-0.5">✓ Done</span>}
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shrink-0">2</span>

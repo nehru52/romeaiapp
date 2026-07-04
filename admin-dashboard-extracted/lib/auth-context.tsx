@@ -137,7 +137,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, name }),
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data: any;
+        try { data = JSON.parse(text); } catch {
+          throw new Error(`Server error (${res.status}) — please try again. If this persists, check that the server is running.`);
+        }
         if (!data.success) {
           throw new Error(data.error ?? "Signup failed");
         }
@@ -175,7 +179,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch {
+        throw new Error(`Server error (${res.status}) — please try again.`);
+      }
       if (!data.success) {
         throw new Error(data.error ?? "Login failed");
       }
@@ -217,7 +225,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             intent: "signup",
           }),
         });
-        const data = await res.json();
+        const gText = await res.text();
+        let data: any;
+        try { data = JSON.parse(gText); } catch {
+          throw new Error(`Server error (${res.status}) — please try again.`);
+        }
         if (!data.success) {
           // If user already exists, fall back to login intent
           if (data.error?.includes("already exists")) {
@@ -230,7 +242,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 intent: "login",
               }),
             });
-            const loginData = await loginRes.json();
+            const loginText = await loginRes.text();
+            let loginData: any;
+            try { loginData = JSON.parse(loginText); } catch {
+              throw new Error(`Server error (${loginRes.status}) — please try again.`);
+            }
             if (!loginData.success) {
               throw new Error(loginData.error ?? "Google login failed");
             }

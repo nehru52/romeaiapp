@@ -74,6 +74,15 @@ import type { ApiResponse } from "../types";
 
 const app = new Hono();
 
+// Always return JSON, never text/HTML
+app.onError((err, c) => {
+  console.error("[saas-core] Unhandled error:", err.message);
+  return c.json({ success: false, error: err.message ?? "Internal server error." }, 500);
+});
+app.notFound((c) => {
+  return c.json({ success: false, error: `Route not found: ${c.req.method} ${c.req.path}` }, 404);
+});
+
 // ── Shared services (single instances used by both router and workflow) ──
 const authService = new AuthService();
 const packService = new PackService();
@@ -245,14 +254,30 @@ app.post("/api/auth/email/signup", async (c) => {
       409,
     );
 
-  if (!password || password.length < 4)
+  if (!password)
     return c.json(
       {
         success: false,
-        error: "Password must be at least 4 characters",
+        error: "Password is required.",
       } satisfies ApiResponse<unknown>,
       400,
     );
+
+  const passwordErrors: string[] = [];
+  if (password.length < 8) passwordErrors.push("at least 8 characters");
+  if (!/[A-Z]/.test(password)) passwordErrors.push("one uppercase letter");
+  if (!/[0-9]/.test(password)) passwordErrors.push("one number");
+  if (!/[^A-Za-z0-9]/.test(password)) passwordErrors.push("one symbol (e.g. !@#$%)");
+
+  if (passwordErrors.length > 0) {
+    return c.json(
+      {
+        success: false,
+        error: `Password must include: ${passwordErrors.join(", ")}.`,
+      } satisfies ApiResponse<unknown>,
+      400,
+    );
+  }
 
   const userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const hash = await hashPassword(password);
@@ -273,6 +298,7 @@ app.post("/api/auth/email/signup", async (c) => {
     step: "niche",
     selectedNiche: null,
     packSlug: null,
+    businessDescription: null,
     websiteUrl: null,
     websiteAnalysis: null,
   });
@@ -341,6 +367,7 @@ app.post("/api/auth/email/login", async (c) => {
       step: onboarded ? "done" : "niche",
       selectedNiche: null,
       packSlug: null,
+      businessDescription: null,
       websiteUrl: null,
       websiteAnalysis: null,
     });
@@ -458,6 +485,7 @@ app.post("/api/auth/google", async (c) => {
         step: existing.onboardingComplete ? "done" : "niche",
         selectedNiche: null,
         packSlug: null,
+        businessDescription: null,
         websiteUrl: null,
         websiteAnalysis: null,
       });
@@ -502,6 +530,7 @@ app.post("/api/auth/google", async (c) => {
     step: "niche",
     selectedNiche: null,
     packSlug: null,
+    businessDescription: null,
     websiteUrl: null,
     websiteAnalysis: null,
   });
@@ -559,9 +588,9 @@ app.get("/api/auth/onboarding/:userId", (c) => {
 // ── Onboarding Steps ─────────────────────────────────────────────────
 
 app.post("/api/onboarding/niche", async (c) => {
-  const { userId, niche, packSlug } = await c.req.json();
+  const { userId, niche, packSlug, businessDescription } = await c.req.json();
   try {
-    const result = await workflow.selectNiche(userId, niche, packSlug);
+    const result = await workflow.selectNiche(userId, niche, packSlug, businessDescription);
     return c.json(
       {
         success: true,
