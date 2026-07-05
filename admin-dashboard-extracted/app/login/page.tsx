@@ -108,19 +108,6 @@ export default function LoginPage() {
           <p className="text-sm text-white/40 mt-1.5">AI-powered social media automation</p>
         </div>
 
-        {/* Already logged in banner */}
-        {isAuthenticated && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-center">
-            <p className="text-sm text-emerald-400/80 font-medium mb-2">You're already logged in as {user?.name ?? user?.email}</p>
-            <button
-              onClick={() => router.push(onboardingComplete ? "/dashboard" : "/onboarding")}
-              className="px-6 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
-            >
-              Continue to {onboardingComplete ? "Dashboard" : "Onboarding"} →
-            </button>
-          </div>
-        )}
-
         {/* Card */}
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8 shadow-2xl shadow-black/50">
           {/* Google button */}
