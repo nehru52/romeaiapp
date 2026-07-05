@@ -36,7 +36,7 @@ export interface AuthState {
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
-  loginWithGoogle: (code: string, redirectUri?: string) => Promise<void>;
+  loginWithGoogle: (code: string, redirectUri?: string, intent?: "login" | "signup") => Promise<void>;
   logout: () => void;
   clearError: () => void;
   completeOnboarding: () => Promise<void>;
@@ -211,19 +211,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Google OAuth login
+  // Google OAuth login — intent drives behavior
   const loginWithGoogle = useCallback(
-    async (code: string, redirectUri?: string) => {
+    async (code: string, redirectUri?: string, intent: "login" | "signup" = "signup") => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       try {
+        const redirect = redirectUri ?? (typeof window !== "undefined" ? window.location.origin + "/auth/callback" : "");
+
+        if (intent === "login") {
+          // Login tab: only log in existing users. If not found, show error.
+          const loginRes = await fetch("/api/auth/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code, redirectUri: redirect, intent: "login" }),
+          });
+          const loginText = await loginRes.text();
+          let loginData: any;
+          try { loginData = JSON.parse(loginText); } catch {
+            throw new Error(`Server error (${loginRes.status}) — please try again.`);
+          }
+          if (!loginData.success) {
+            throw new Error(loginData.error ?? "Google login failed");
+          }
+          const loginUser: User = {
+            userId: loginData.data.userId,
+            name: loginData.data.name ?? "User",
+            email: loginData.data.email ?? "",
+          };
+          saveToStorage(loginUser, loginData.data.onboardingComplete ?? false);
+          setState({
+            user: loginUser,
+            isLoading: false,
+            isAuthenticated: true,
+            onboardingComplete: loginData.data.onboardingComplete ?? false,
+            error: null,
+          });
+          return;
+        }
+
+        // Signup tab: create new account. If already exists, fall back to login.
         const res = await fetch("/api/auth/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code,
-            redirectUri: redirectUri ?? window.location.origin + "/auth/callback",
-            intent: "signup",
-          }),
+          body: JSON.stringify({ code, redirectUri: redirect, intent: "signup" }),
         });
         const gText = await res.text();
         let data: any;
@@ -233,39 +263,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!data.success) {
           // If user already exists, fall back to login intent
           if (data.error?.includes("already exists")) {
-            const loginRes = await fetch("/api/auth/google", {
+            const fallbackRes = await fetch("/api/auth/google", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                code,
-                redirectUri: redirectUri ?? window.location.origin + "/auth/callback",
-                intent: "login",
-              }),
+              body: JSON.stringify({ code, redirectUri: redirect, intent: "login" }),
             });
-            const loginText = await loginRes.text();
-            let loginData: any;
-            try { loginData = JSON.parse(loginText); } catch {
-              throw new Error(`Server error (${loginRes.status}) — please try again.`);
+            const fbText = await fallbackRes.text();
+            let fbData: any;
+            try { fbData = JSON.parse(fbText); } catch {
+              throw new Error(`Server error (${fallbackRes.status}) — please try again.`);
             }
-            if (!loginData.success) {
-              throw new Error(loginData.error ?? "Google login failed");
+            if (!fbData.success) {
+              throw new Error(fbData.error ?? "Google login failed");
             }
-            const user: User = {
-              userId: loginData.data.userId,
-              name: loginData.data.name ?? "User",
-              email: loginData.data.email ?? "",
+            const fbUser: User = {
+              userId: fbData.data.userId,
+              name: fbData.data.name ?? "User",
+              email: fbData.data.email ?? "",
             };
-            saveToStorage(user, loginData.data.onboardingComplete ?? false);
+            saveToStorage(fbUser, fbData.data.onboardingComplete ?? false);
             setState({
-              user,
+              user: fbUser,
               isLoading: false,
               isAuthenticated: true,
-              onboardingComplete: loginData.data.onboardingComplete ?? false,
+              onboardingComplete: fbData.data.onboardingComplete ?? false,
               error: null,
             });
             return;
           }
-          throw new Error(data.error ?? "Google login failed");
+          throw new Error(data.error ?? "Google signup failed");
         }
         const user: User = {
           userId: data.data.userId,

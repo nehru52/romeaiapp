@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 export default function LoginPage() {
-  const { login, signup, loginWithGoogle, isAuthenticated, onboardingComplete, isLoading, error, clearError } = useAuth();
+  const { user, login, signup, loginWithGoogle, isAuthenticated, onboardingComplete, isLoading, error, clearError } = useAuth();
   const router = useRouter();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -30,11 +30,7 @@ export default function LoginPage() {
     allValid: password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password),
   }), [password]);
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      router.replace(onboardingComplete ? "/dashboard" : "/onboarding");
-    }
-  }, [isAuthenticated, isLoading, onboardingComplete, router]);
+  // Don't auto-redirect — let the user see the login page first
 
   const displayError = localError ?? error;
 
@@ -61,13 +57,24 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setSubmitting(true); setLocalError(null);
-    try {
-      await loginWithGoogle(`google_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
-    } catch (err: any) {
-      setLocalError(err.message ?? "Google login failed.");
-    } finally { setSubmitting(false); }
+  const handleGoogle = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "459672196990-16u7i5fmlsks21pp4j7kvegrsha1sara.apps.googleusercontent.com";
+    const redirectUri = typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : "";
+    const scope = "openid profile email";
+    const state = mode; // "login" or "signup" — passed through to callback
+
+    const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&response_type=code` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&state=${encodeURIComponent(state)}` +
+      `&access_type=offline` +
+      `&prompt=consent`;
+
+    window.location.href = googleUrl;
   };
 
   if (isLoading) {
@@ -100,6 +107,19 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold tracking-tight text-white">Optimus AI</h1>
           <p className="text-sm text-white/40 mt-1.5">AI-powered social media automation</p>
         </div>
+
+        {/* Already logged in banner */}
+        {isAuthenticated && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-center">
+            <p className="text-sm text-emerald-400/80 font-medium mb-2">You're already logged in as {user?.name ?? user?.email}</p>
+            <button
+              onClick={() => router.push(onboardingComplete ? "/dashboard" : "/onboarding")}
+              className="px-6 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
+            >
+              Continue to {onboardingComplete ? "Dashboard" : "Onboarding"} →
+            </button>
+          </div>
+        )}
 
         {/* Card */}
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-8 shadow-2xl shadow-black/50">

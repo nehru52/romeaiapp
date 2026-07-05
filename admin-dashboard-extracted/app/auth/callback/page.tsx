@@ -20,8 +20,9 @@ function CallbackHandler() {
     processed.current = true;
 
     const code = searchParams.get("code");
+    const state = searchParams.get("state") as "login" | "signup" | null;
     if (code) {
-      loginWithGoogle(code).catch(() => {
+      loginWithGoogle(code, undefined, state ?? "signup").catch(() => {
         router.replace("/login?error=google_failed");
       });
     } else {
