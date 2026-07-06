@@ -4,75 +4,105 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap } from "lucide-react";
+import { AnimatedTetrahedron } from "./animated-tetrahedron";
 
 export function CtaSection() {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setIsVisible(true);
       },
-      { threshold: 0.3 }
+      { threshold: 0.2 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
 
-  return (
-    <section ref={ref} className="relative py-24 lg:py-32 bg-foreground text-background overflow-hidden">
-      {/* Pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `repeating-linear-gradient(-45deg, transparent, transparent 40px, currentColor 40px, currentColor 41px)`,
-        }}
-      />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-background/5 blur-3xl pointer-events-none" />
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12 text-center">
+  return (
+    <section ref={ref} className="relative py-24 lg:py-32 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div
-          className={`transition-all duration-700 ${
+          className={`relative border border-foreground/10 rounded-2xl bg-background transition-all duration-1000 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
+          onMouseMove={handleMouseMove}
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-background/10 border border-background/10 text-xs font-medium mb-8">
-            <Zap className="w-3 h-3" />
-            Powered by DeepSeek AI
+          {/* Spotlight effect */}
+          <div
+            className="absolute inset-0 rounded-2xl opacity-10 pointer-events-none transition-opacity duration-300"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(0,0,0,0.15), transparent 40%)`,
+            }}
+          />
+
+          <div className="relative z-10 px-8 lg:px-16 py-16 lg:py-24">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+              {/* Left content */}
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-foreground/[0.04] border border-border/50 text-xs font-medium mb-8">
+                  <Zap className="w-3 h-3" />
+                  Powered by DeepSeek AI
+                </div>
+
+                <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-6 leading-[0.95]">
+                  Ready to automate your
+                  <br />
+                  <span className="text-muted-foreground">social media?</span>
+                </h2>
+
+                <p className="text-lg text-muted-foreground mb-10 leading-relaxed max-w-xl">
+                  Join businesses and agencies using Optimus AI to generate, schedule,
+                  and publish their entire social presence — on autopilot.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-foreground hover:bg-foreground/90 text-background px-8 h-14 text-base rounded-full group"
+                  >
+                    <Link href="/login">
+                      Start building free
+                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
+                  >
+                    <Link href="/login">Talk to sales</Link>
+                  </Button>
+                </div>
+
+                <p className="text-sm text-muted-foreground mt-6 font-mono">
+                  Free tier includes 5 posts/month. No credit card required.
+                </p>
+              </div>
+
+              {/* Right: animated tetrahedron */}
+              <div className="hidden lg:flex items-center justify-center w-[400px] h-[400px] -mr-8">
+                <AnimatedTetrahedron />
+              </div>
+            </div>
           </div>
-          <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-6">
-            Ready to automate your
-            <br />
-            <span className="text-background/50">social media?</span>
-          </h2>
-          <p className="text-background/50 max-w-lg mx-auto mb-10 text-lg leading-relaxed">
-            Join businesses and agencies using Optimus AI to generate, schedule,
-            and publish their entire social presence — on autopilot.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="bg-background hover:bg-background/90 text-foreground px-8 h-14 text-base rounded-full group"
-            >
-              <Link href="/login">
-                Start free trial
-                <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-14 px-8 text-base rounded-full border-background/20 hover:bg-background/10 text-background"
-            >
-              <Link href="/login">Talk to sales</Link>
-            </Button>
-          </div>
-          <p className="mt-6 text-xs text-background/30">
-            Free tier includes 5 posts/month. No credit card required.
-          </p>
+
+          {/* Decorative corners */}
+          <div className="absolute top-0 right-0 w-32 h-32 border-b border-l border-border/10 rounded-tr-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 border-t border-r border-border/10 rounded-bl-2xl" />
         </div>
       </div>
     </section>

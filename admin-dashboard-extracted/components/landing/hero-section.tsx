@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { AnimatedSphere } from "./animated-sphere";
 
 const CYCLING_WORDS = ["create", "schedule", "publish", "grow"];
 
@@ -28,27 +29,28 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
-      {/* Subtle grid */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03]">
-        {Array.from({ length: 10 }).map((_, i) => (
+      {/* Animated sphere background */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] opacity-30 pointer-events-none">
+        <AnimatedSphere />
+      </div>
+
+      {/* Subtle grid lines */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={`h-${i}`}
-            className="absolute h-px bg-foreground"
-            style={{ top: `${10 * (i + 1)}%`, left: 0, right: 0 }}
+            className="absolute h-px bg-foreground/10"
+            style={{ top: `${12.5 * (i + 1)}%`, left: 0, right: 0 }}
           />
         ))}
-        {Array.from({ length: 16 }).map((_, i) => (
+        {Array.from({ length: 12 }).map((_, i) => (
           <div
             key={`v-${i}`}
-            className="absolute w-px bg-foreground"
-            style={{ left: `${6.25 * (i + 1)}%`, top: 0, bottom: 0 }}
+            className="absolute w-px bg-foreground/10"
+            style={{ left: `${8.33 * (i + 1)}%`, top: 0, bottom: 0 }}
           />
         ))}
       </div>
-
-      {/* Gradient glow */}
-      <div className="absolute top-1/3 right-0 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-foreground/5 to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-foreground/[0.03] to-transparent blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12 py-32 lg:py-40">
         {/* Eyebrow */}
@@ -63,7 +65,7 @@ export function HeroSection() {
           </span>
         </div>
 
-        {/* Headline */}
+        {/* Main headline */}
         <div className="mb-12">
           <h1
             className={`text-[clamp(2.5rem,8vw,7rem)] font-display leading-[0.95] tracking-tight transition-all duration-1000 ${
@@ -134,14 +136,10 @@ export function HeroSection() {
             <div key={i} className="flex gap-16">
               {STATS.map((stat) => (
                 <div key={`${stat.company}-${i}`} className="flex items-baseline gap-4">
-                  <span className="text-3xl lg:text-4xl font-display text-muted-foreground">
-                    {stat.value}
-                  </span>
-                  <span className="text-sm text-muted-foreground/60">
+                  <span className="text-4xl lg:text-5xl font-display">{stat.value}</span>
+                  <span className="text-sm text-muted-foreground">
                     {stat.label}
-                    <span className="block font-mono text-[10px] mt-1 tracking-wider text-muted-foreground/30">
-                      {stat.company}
-                    </span>
+                    <span className="block font-mono text-xs mt-1">{stat.company}</span>
                   </span>
                 </div>
               ))}

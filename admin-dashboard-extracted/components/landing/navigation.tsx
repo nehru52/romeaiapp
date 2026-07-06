@@ -5,6 +5,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap } from "lucide-react";
 
+const navLinks = [
+  { name: "Features", href: "#features" },
+  { name: "How it works", href: "#how-it-works" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "Industries", href: "#packs" },
+];
+
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -15,47 +22,62 @@ export function Navigation() {
   }, []);
 
   return (
-    <nav
-      className={`fixed top-0 z-50 w-full transition-all duration-500 ${
-        scrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
-          : "bg-transparent"
+    <header
+      className={`fixed z-50 transition-all duration-500 ${
+        scrolled ? "top-3 left-3 right-3" : "top-0 left-0 right-0"
       }`}
     >
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold text-lg tracking-tight">
-          <Zap className="w-5 h-5" />
-          <span>Optimus AI</span>
-        </Link>
+      <nav
+        className={`mx-auto transition-all duration-500 ${
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-lg max-w-[1200px]"
+            : "bg-transparent max-w-[1400px]"
+        }`}
+      >
+        <div
+          className={`flex items-center justify-between transition-all duration-500 px-6 lg:px-8 ${
+            scrolled ? "h-14" : "h-20"
+          }`}
+        >
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <Zap className={`transition-all duration-500 ${scrolled ? "w-4 h-4" : "w-5 h-5"}`} />
+            <span className={`font-display tracking-tight transition-all duration-500 ${scrolled ? "text-xl" : "text-2xl"}`}>
+              Optimus AI
+            </span>
+          </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Features
-          </a>
-          <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            How it works
-          </a>
-          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Pricing
-          </a>
-          <a href="#packs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Industries
-          </a>
-        </div>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-12">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group"
+              >
+                {link.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+              </a>
+            ))}
+          </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            asChild
-            size="default"
-            className="bg-foreground hover:bg-foreground/90 text-background rounded-full px-6 h-10 text-sm group"
-          >
-            <Link href="/login">
-              Get started
-              <ArrowRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </Button>
+          {/* Desktop CTA */}
+          <div className="flex items-center gap-3">
+            <Button
+              asChild
+              size="sm"
+              className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 group ${
+                scrolled ? "px-4 h-8 text-xs" : "px-6"
+              }`}
+            >
+              <Link href="/login">
+                Get started
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

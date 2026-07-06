@@ -78,8 +78,9 @@ export function PricingSection() {
   }, []);
 
   return (
-    <section id="pricing" ref={ref} className="relative py-24 lg:py-32 bg-foreground/[0.02] border-y border-border/50">
+    <section id="pricing" ref={ref} className="relative py-32 lg:py-40 border-t border-border/50">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+        {/* Header */}
         <div className="text-center mb-16 lg:mb-24">
           <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
             <span className="w-8 h-px bg-foreground/30" />
@@ -90,60 +91,67 @@ export function PricingSection() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            Simple, transparent pricing.
+            Simple, transparent
+            <br />
+            <span className="text-stroke">pricing.</span>
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             Start free. Upgrade when you&apos;re ready. No hidden fees, no surprises.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-px bg-border/50 max-w-5xl mx-auto overflow-hidden rounded-2xl">
           {TIERS.map((tier, i) => (
             <div
               key={tier.name}
-              className={`relative rounded-2xl p-8 transition-all duration-700 ${
-                tier.featured
-                  ? "bg-foreground text-background ring-2 ring-foreground"
-                  : "bg-card border border-border/50 hover:border-foreground/20"
+              className={`relative p-8 lg:p-12 bg-background transition-all duration-700 ${
+                tier.featured ? "md:-my-4 md:py-12 lg:py-16 border-2 border-foreground rounded-2xl z-10" : ""
               } ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
               style={{ transitionDelay: `${i * 100}ms` }}
             >
               {tier.featured && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-foreground text-background border border-background/20 text-xs font-medium">
+                <span className="absolute -top-3 left-8 px-3 py-1 bg-foreground text-background text-xs font-mono uppercase tracking-widest rounded-full">
                   Most popular
-                </div>
+                </span>
               )}
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-4xl font-display">{tier.price}</span>
-                  <span className={`text-sm ${tier.featured ? "text-background/50" : "text-muted-foreground"}`}>
-                    {tier.period}
-                  </span>
-                </div>
-                <p className={`text-sm ${tier.featured ? "text-background/60" : "text-muted-foreground"}`}>
-                  {tier.desc}
-                </p>
+              {/* Tier Header */}
+              <div className="mb-8">
+                <span className="font-mono text-xs text-muted-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-display text-3xl mt-2">{tier.name}</h3>
+                <p className="text-sm text-muted-foreground mt-2">{tier.desc}</p>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              {/* Price */}
+              <div className="mb-8 pb-8 border-b border-border/50">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-5xl lg:text-6xl">{tier.price}</span>
+                  <span className="text-muted-foreground">{tier.period}</span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <ul className="space-y-4 mb-10">
                 {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm">
-                    <Check className={`w-4 h-4 mt-0.5 shrink-0 ${tier.featured ? "text-background/70" : "text-muted-foreground"}`} />
-                    <span className={tier.featured ? "text-background/80" : "text-muted-foreground"}>{f}</span>
+                  <li key={f} className="flex items-start gap-3">
+                    <Check className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+                    <span className="text-sm text-muted-foreground">{f}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* CTA */}
               <Button
                 asChild
                 size="lg"
                 className={`w-full rounded-full group ${
                   tier.featured
-                    ? "bg-background hover:bg-background/90 text-foreground"
+                    ? "bg-foreground hover:bg-foreground/90 text-background"
                     : "bg-foreground hover:bg-foreground/90 text-background"
                 }`}
               >
@@ -155,6 +163,14 @@ export function PricingSection() {
             </div>
           ))}
         </div>
+
+        {/* Bottom Note */}
+        <p className="mt-12 text-center text-sm text-muted-foreground">
+          All plans include automatic updates, HTTPS, and DDoS protection.{" "}
+          <a href="#" className="underline underline-offset-4 hover:text-foreground transition-colors">
+            Compare all features
+          </a>
+        </p>
       </div>
     </section>
   );
