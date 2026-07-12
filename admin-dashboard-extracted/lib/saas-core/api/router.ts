@@ -126,6 +126,7 @@ const userStore = new Map<
   }
 >();
 const onboardingStore = new Map<string, boolean>();
+const resetCodes = new Map<string, { code: string; expiresAt: number }>();
 
 // Load existing users from Supabase on startup
 async function loadUsersFromDB(): Promise<void> {
@@ -321,6 +322,79 @@ app.post("/api/auth/email/signup", async (c) => {
       data: { userId, name: displayName, onboardingComplete: false },
     } satisfies ApiResponse<unknown>,
     201,
+  );
+});
+
+// Forgot password — verify email and return reset token
+app.post("/api/auth/forgot-password", async (c) => {
+  const { email } = await c.req.json();
+  if (!email)
+    return c.json(
+      { success: false, error: "Email is required" } satisfies ApiResponse<unknown>,
+      400,
+    );
+
+  const found = findUserByEmail(email);
+  if (!found)
+    return c.json(
+      { success: false, error: "No account found with that email." } satisfies ApiResponse<unknown>,
+      404,
+    );
+
+  // Generate a 6-digit reset code (valid for 15 minutes)
+  const resetCode = String(Math.floor(100000 + Math.random() * 900000));
+  resetCodes.set(email, {
+    code: resetCode,
+    expiresAt: Date.now() + 15 * 60 * 1000,
+  });
+
+  return c.json(
+    { success: true, data: { resetCode } } satisfies ApiResponse<unknown>,
+    200,
+  );
+});
+
+// Reset password — verify code and update password
+app.post("/api/auth/reset-password", async (c) => {
+  const { email, code, newPassword } = await c.req.json();
+  if (!email || !code || !newPassword)
+    return c.json(
+      { success: false, error: "Email, reset code, and new password are required" } satisfies ApiResponse<unknown>,
+      400,
+    );
+
+  if (newPassword.length < 8)
+    return c.json(
+      { success: false, error: "Password must be at least 8 characters" } satisfies ApiResponse<unknown>,
+      400,
+    );
+
+  const stored = resetCodes.get(email);
+  if (!stored || stored.code !== code || Date.now() > stored.expiresAt) {
+    resetCodes.delete(email);
+    return c.json(
+      { success: false, error: "Invalid or expired reset code. Please request a new one." } satisfies ApiResponse<unknown>,
+      400,
+    );
+  }
+
+  const found = findUserByEmail(email);
+  if (!found)
+    return c.json(
+      { success: false, error: "Account not found" } satisfies ApiResponse<unknown>,
+      404,
+    );
+
+  // Update password
+  const newHash = await hashPassword(newPassword);
+  found.hash = newHash;
+  userStore.set(found.userId, found);
+  persistUser(found);
+  resetCodes.delete(email);
+
+  return c.json(
+    { success: true, data: { message: "Password updated successfully" } } satisfies ApiResponse<unknown>,
+    200,
   );
 });
 

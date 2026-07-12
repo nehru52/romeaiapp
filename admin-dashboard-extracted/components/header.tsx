@@ -87,11 +87,11 @@ export function Header() {
 
   const handleLogout = () => {
     logout();
-    router.replace("/");
+    window.location.href = "/";
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background">
+    <header className="sticky top-0 z-40 border-b border-border/50 bg-background">
       <div className="flex h-14 items-center px-4 gap-4">
         <Button
           variant="ghost"
@@ -111,35 +111,35 @@ export function Header() {
             <Button variant="ghost" size="icon" className="h-8 w-8 relative">
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
               <span className="sr-only">Notifications</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <div className="flex items-center justify-between px-3 py-2">
-              <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-              <div className="flex gap-1">
+          <DropdownMenuContent align="end" className="w-80 rounded-2xl border-border/50 p-0">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+              <DropdownMenuLabel className="p-0 text-sm font-semibold">Notifications</DropdownMenuLabel>
+              <div className="flex gap-2">
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5">
+                  <button onClick={markAllRead} className="text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded-lg bg-foreground/[0.04]">
                     Mark all read
                   </button>
                 )}
                 {notifications.length > 0 && (
-                  <button onClick={clearAll} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5">
+                  <button onClick={clearAll} className="text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded-lg bg-foreground/[0.04]">
                     Clear
                   </button>
                 )}
               </div>
             </div>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="hidden" />
             {notifications.length === 0 ? (
-              <div className="px-3 py-8 text-center">
-                <Bell className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">No notifications yet</p>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5">Content review alerts will appear here</p>
+              <div className="px-4 py-10 text-center">
+                <Bell className="h-6 w-6 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No notifications yet</p>
+                <p className="text-xs text-muted-foreground/50 mt-0.5">Content review alerts will appear here</p>
               </div>
             ) : (
               <div className="max-h-[300px] overflow-y-auto">
@@ -152,14 +152,16 @@ export function Header() {
                       setNotifications(updated);
                       router.push("/generate");
                     }}
-                    className={`flex flex-col items-start gap-1 px-3 py-2.5 cursor-pointer ${!n.read ? "bg-white/[0.03]" : ""}`}
+                    className={`flex flex-col items-start gap-1.5 px-4 py-3 cursor-pointer border-b border-border/20 last:border-0 ${
+                      !n.read ? "bg-foreground/[0.02]" : ""
+                    }`}
                   >
-                    <div className="flex items-center gap-2 w-full">
-                      {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />}
+                    <div className="flex items-center gap-2.5 w-full">
+                      {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />}
                       <span className="text-xs font-medium flex-1">{n.title}</span>
-                      <span className="text-[10px] text-muted-foreground/60 shrink-0">{n.time}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/60 shrink-0">{n.time}</span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground ml-3.5">{n.message}</p>
+                    <p className="text-[11px] text-muted-foreground ml-4">{n.message}</p>
                   </DropdownMenuItem>
                 ))}
               </div>
@@ -173,30 +175,30 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full border border-border/50"
             >
               <User className="h-4 w-4" />
               <span className="sr-only">User menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              {user?.name ?? "My Account"}
+          <DropdownMenuContent align="end" className="rounded-2xl border-border/50 min-w-[200px]">
+            <DropdownMenuLabel className="font-normal">
+              <span className="font-semibold text-sm">{user?.name ?? "My Account"}</span>
               {user?.email && (
-                <p className="text-xs text-muted-foreground font-normal truncate max-w-[200px]">
+                <p className="text-xs text-muted-foreground font-normal truncate max-w-[200px] mt-0.5">
                   {user.email}
                 </p>
               )}
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/settings/profile")}>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem onClick={() => router.push("/settings/profile")} className="rounded-lg text-sm">
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
+            <DropdownMenuItem onClick={() => router.push("/settings")} className="rounded-lg text-sm">
               Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem onClick={handleLogout} className="rounded-lg text-sm">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </DropdownMenuItem>

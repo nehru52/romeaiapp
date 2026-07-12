@@ -90,7 +90,7 @@ export function HeroSection() {
                 <span className="absolute -bottom-2 left-0 right-0 h-2 bg-foreground/10" />
               </span>
             </span>
-            <span className="block text-muted-foreground">social media engine</span>
+            <span className="block text-muted-foreground">social media <span className="text-gradient-brand">engine</span></span>
           </h1>
         </div>
 

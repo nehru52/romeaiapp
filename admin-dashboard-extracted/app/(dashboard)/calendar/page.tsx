@@ -52,58 +52,90 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-8">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Content Calendar</h1>
-          <p className="text-muted-foreground">Plan and schedule your social media content</p>
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-2">
+            <span className="w-6 h-px bg-foreground/30" />
+            Calendar
+          </span>
+          <h1 className="text-3xl md:text-4xl font-display tracking-tight">Content Calendar</h1>
+          <p className="text-muted-foreground mt-1">Plan and schedule your social media content</p>
         </div>
-        <Button onClick={() => router.push("/generate")} size="sm">
+        <Button onClick={() => router.push("/generate")} className="shrink-0 rounded-full bg-foreground hover:bg-foreground/90 text-background h-10 px-5">
           <Plus className="h-4 w-4 mr-1.5" /> Generate Content
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Scheduled</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-blue-400">{stats.scheduled}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Pending</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-yellow-400">{stats.pending}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Published</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-emerald-400">{stats.published}</div></CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-3 stagger-children">
+        <div className="bg-card border border-border/50 rounded-2xl p-6 hover-lift transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-xs text-muted-foreground">Scheduled</span>
+            <span className="w-2 h-2 rounded-full bg-foreground/30" />
+          </div>
+          <div className="text-3xl lg:text-4xl font-display tracking-tight">{stats.scheduled}</div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Posts waiting to go live</p>
+        </div>
+        <div className="bg-card border border-border/50 rounded-2xl p-6 hover-lift transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-xs text-muted-foreground">Pending</span>
+            <span className="w-2 h-2 rounded-full bg-foreground/20" />
+          </div>
+          <div className="text-3xl lg:text-4xl font-display tracking-tight">{stats.pending}</div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Awaiting review</p>
+        </div>
+        <div className="bg-card border border-border/50 rounded-2xl p-6 hover-lift transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-xs text-muted-foreground">Published</span>
+            <span className="w-2 h-2 rounded-full bg-foreground/40" />
+          </div>
+          <div className="text-3xl lg:text-4xl font-display tracking-tight">{stats.published}</div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Live on social platforms</p>
+        </div>
       </div>
 
-      <CalendarView events={events} onEventClick={setSelectedEvent} />
+      <div className="bg-card border border-border/50 rounded-2xl p-1">
+        <CalendarView events={events} onEventClick={setSelectedEvent} />
+      </div>
 
       {selectedEvent && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{selectedEvent.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div><span className="text-muted-foreground">Platform:</span> <span className="font-medium capitalize">{selectedEvent.platform}</span></div>
-              <div><span className="text-muted-foreground">Type:</span> <span className="font-medium capitalize">{selectedEvent.type}</span></div>
-              <div><span className="text-muted-foreground">Status:</span> <span className="font-medium capitalize">{selectedEvent.status}</span></div>
+        <div className="bg-card border border-border/50 rounded-2xl p-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <h3 className="font-display text-2xl">{selectedEvent.title}</h3>
+            <span className={`px-3 py-1 text-xs font-mono rounded-full capitalize ${
+              selectedEvent.status === "published"
+                ? "bg-foreground/10 text-foreground/70"
+                : selectedEvent.status === "scheduled"
+                  ? "bg-foreground/10 text-foreground/70"
+                  : "bg-foreground/5 text-muted-foreground"
+            }`}>{selectedEvent.status}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-6 text-sm">
+            <div className="p-4 rounded-xl bg-foreground/[0.02] border border-border/30">
+              <span className="font-mono text-xs text-muted-foreground block mb-1">Platform</span>
+              <span className="font-medium capitalize">{selectedEvent.platform}</span>
             </div>
-            <div className="flex gap-2 mt-4">
-              {selectedEvent.status === "pending" && (
-                <>
-                  <Button size="sm">Approve</Button>
-                  <Button size="sm" variant="outline">Reschedule</Button>
-                </>
-              )}
-              {selectedEvent.status === "scheduled" && (
-                <Button size="sm" variant="outline">Edit Schedule</Button>
-              )}
+            <div className="p-4 rounded-xl bg-foreground/[0.02] border border-border/30">
+              <span className="font-mono text-xs text-muted-foreground block mb-1">Type</span>
+              <span className="font-medium capitalize">{selectedEvent.type}</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-4 rounded-xl bg-foreground/[0.02] border border-border/30">
+              <span className="font-mono text-xs text-muted-foreground block mb-1">Date</span>
+              <span className="font-medium">{new Date(selectedEvent.date).toLocaleDateString()}</span>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6 pt-6 border-t border-border/30">
+            {selectedEvent.status === "pending" && (
+              <>
+                <Button size="sm" className="rounded-full bg-foreground hover:bg-foreground/90 text-background">Approve</Button>
+                <Button size="sm" variant="outline" className="rounded-full border-border/50">Reschedule</Button>
+              </>
+            )}
+            {selectedEvent.status === "scheduled" && (
+              <Button size="sm" variant="outline" className="rounded-full border-border/50">Edit Schedule</Button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

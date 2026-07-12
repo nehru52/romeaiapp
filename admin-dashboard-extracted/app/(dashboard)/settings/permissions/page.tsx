@@ -1,62 +1,61 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Check } from "lucide-react";
 
 const TIERS = [
-  { name: "Free", price: "$0", features: ["5 posts/month", "1 platform", "1 blog/month", "Approval gate"], color: "bg-zinc-500/10 text-zinc-400" },
-  { name: "Starter", price: "$199/mo", features: ["20 posts/month", "2 platforms", "2 blogs/month", "AI images", "Approval gate"], color: "bg-blue-500/10 text-blue-400" },
-  { name: "Growth", price: "$499/mo", features: ["60 posts/month", "4 platforms", "8 blogs/month", "AI images & video", "Trend detection", "Booking funnel"], color: "bg-violet-500/10 text-violet-400" },
-  { name: "Empire", price: "$999/mo", features: ["200 posts/month", "6 platforms", "30 blogs/month", "Everything in Growth", "No approval gate", "White-label"], color: "bg-amber-500/10 text-amber-400" },
+  { name: "Free", price: "$0", features: ["5 posts/month", "1 platform", "1 blog/month", "Approval gate"] },
+  { name: "Starter", price: "$199/mo", features: ["20 posts/month", "2 platforms", "2 blogs/month", "AI images", "Approval gate"] },
+  { name: "Growth", price: "$499/mo", features: ["60 posts/month", "4 platforms", "8 blogs/month", "AI images & video", "Trend detection", "Booking funnel"] },
+  { name: "Empire", price: "$999/mo", features: ["200 posts/month", "6 platforms", "30 blogs/month", "Everything in Growth", "No approval gate", "White-label"] },
 ];
 
 export default function PermissionsSettingsPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Subscription & Permissions</h1>
+    <div className="flex flex-col gap-8">
+      <div>
+        <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-2">
+          <span className="w-6 h-px bg-foreground/30" />
+          Settings
+        </span>
+        <h1 className="text-3xl md:text-4xl font-display tracking-tight">Subscription &amp; Permissions</h1>
+        <p className="text-muted-foreground mt-1">Manage your plan, billing, and feature access</p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Plan</CardTitle>
-          <CardDescription>You are on the Free tier. Upgrade to unlock more features.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 mb-4">
-            <Badge variant="secondary" className="text-sm px-3 py-1">Free Plan</Badge>
-            <span className="text-sm text-muted-foreground">5 posts/month • 1 platform</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-card border border-border/50 rounded-2xl p-8">
+        <h3 className="font-display text-xl mb-1">Current Plan</h3>
+        <p className="text-sm text-muted-foreground mb-6">You are on the Free tier. Upgrade to unlock more features.</p>
+        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-foreground/5 border border-border/30">
+          <span className="text-xs font-mono font-medium text-foreground/80">Free Plan</span>
+          <span className="text-xs text-muted-foreground">5 posts/month · 1 platform</span>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Plans</CardTitle>
-          <CardDescription>Choose the plan that fits your business.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {TIERS.map((tier) => (
-              <div key={tier.name} className="rounded-xl border border-white/[0.06] bg-white/[0.01] p-4 flex flex-col gap-3">
-                <div>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tier.color}`}>{tier.name}</span>
-                  <p className="text-lg font-bold mt-2">{tier.price}</p>
-                </div>
-                <ul className="space-y-1.5 flex-1">
-                  {tier.features.map((f) => (
-                    <li key={f} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                      <span className="text-emerald-400 shrink-0 mt-0.5">✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button variant={tier.name === "Free" ? "outline" : "default"} size="sm" className="w-full" disabled={tier.name === "Free"}>
-                  {tier.name === "Free" ? "Current" : "Upgrade"}
-                </Button>
+      <div>
+        <h3 className="font-display text-xl mb-1">Available Plans</h3>
+        <p className="text-sm text-muted-foreground mb-6">Choose the plan that fits your business.</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {TIERS.map((tier) => (
+            <div key={tier.name} className="bg-card border border-border/50 rounded-2xl p-6 flex flex-col gap-4 hover-lift transition-all duration-300">
+              <div>
+                <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-foreground/5 text-foreground/70 border border-border/30">{tier.name}</span>
+                <p className="text-2xl font-display mt-3">{tier.price}</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <ul className="space-y-2 flex-1">
+                {tier.features.map((f) => (
+                  <li key={f} className="text-xs text-muted-foreground flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-foreground/50 shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Button variant={tier.name === "Free" ? "outline" : "default"} size="sm" className="w-full rounded-full" disabled={tier.name === "Free"}>
+                {tier.name === "Free" ? "Current" : "Upgrade"}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

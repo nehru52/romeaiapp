@@ -71,7 +71,7 @@ export function CtaSection() {
                   <Button
                     asChild
                     size="lg"
-                    className="bg-foreground hover:bg-foreground/90 text-background px-8 h-14 text-base rounded-full group"
+                    className="btn-gradient text-background px-8 h-14 text-base rounded-full group"
                   >
                     <Link href="/login">
                       Start building free

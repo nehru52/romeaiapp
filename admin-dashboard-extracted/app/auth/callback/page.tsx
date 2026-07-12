@@ -1,5 +1,5 @@
 /**
- * Google OAuth callback handler.
+ * Google OAuth callback handler — light theme with design tokens.
  * Receives the auth code from Google redirect, exchanges it for a session.
  */
 
@@ -41,18 +41,22 @@ function CallbackHandler() {
   }, [isAuthenticated, onboardingComplete, router]);
 
   return (
-    <p style={{ color: "#999", fontSize: 16 }}>Signing you in...</p>
+    <div className="flex items-center gap-3">
+      <div className="w-5 h-5 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      <p className="text-sm text-muted-foreground font-mono">Signing you in...</p>
+    </div>
   );
 }
 
 export default function GoogleCallbackPage() {
   return (
-    <div style={{
-      display: "flex", justifyContent: "center", alignItems: "center",
-      minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#fff",
-      fontFamily: "system-ui, sans-serif",
-    }}>
-      <Suspense fallback={<p style={{ color: "#999", fontSize: 16 }}>Loading...</p>}>
+    <div className="relative flex items-center justify-center min-h-screen bg-background noise-overlay">
+      <Suspense fallback={
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground font-mono">Loading...</p>
+        </div>
+      }>
         <CallbackHandler />
       </Suspense>
     </div>

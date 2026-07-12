@@ -50,7 +50,7 @@ export function IndustryPacksSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 stagger-children">
           {PACKS.map((pack, i) => {
             const Icon = pack.icon;
             return (

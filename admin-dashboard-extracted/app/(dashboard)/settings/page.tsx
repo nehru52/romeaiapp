@@ -4,9 +4,7 @@
 
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Key, Mail, User, CreditCard, ArrowRight } from "lucide-react";
 
 const SETTINGS_SECTIONS = [
@@ -17,32 +15,35 @@ const SETTINGS_SECTIONS = [
 ];
 
 export default function SettingsHubPage() {
-  const { user } = useAuth();
   const router = useRouter();
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and preferences</p>
+        <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-2">
+          <span className="w-6 h-px bg-foreground/30" />
+          Account
+        </span>
+        <h1 className="text-3xl md:text-4xl font-display tracking-tight">Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 stagger-children">
         {SETTINGS_SECTIONS.map((section) => (
-          <Card
+          <button
             key={section.name}
-            className="cursor-pointer hover:border-white/10 transition-colors"
             onClick={() => router.push(section.href)}
+            className="bg-card border border-border/50 rounded-2xl p-6 text-left hover-lift transition-all duration-300 group cursor-pointer"
           >
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <section.icon className="h-5 w-5 text-muted-foreground" />
-                <ArrowRight className="h-4 w-4 text-muted-foreground/30" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center">
+                <section.icon className="h-5 w-5 text-foreground/70" />
               </div>
-              <CardTitle className="text-base mt-2">{section.name}</CardTitle>
-              <CardDescription>{section.desc}</CardDescription>
-            </CardHeader>
-          </Card>
+              <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-foreground/60 group-hover:translate-x-1 transition-all" />
+            </div>
+            <h3 className="font-display text-xl mb-1">{section.name}</h3>
+            <p className="text-sm text-muted-foreground">{section.desc}</p>
+          </button>
         ))}
       </div>
     </div>

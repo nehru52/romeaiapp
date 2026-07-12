@@ -137,7 +137,12 @@ const workspaceReactTestRendererEntry = path.join(
   "index.js",
 );
 const workspaceAdzeEntry = path.join(workspaceAdzeDir, "dist", "index.js");
-const asViteFsPath = (targetPath: string) => `/@fs${targetPath}`;
+const asViteFsPath = (targetPath: string) => {
+  // Normalize to forward slashes for Vite's /@fs/ protocol, which requires
+  // POSIX-style paths even on Windows (e.g. /@fs/D:/path/to/file.js).
+  const normalized = targetPath.replace(/\\/g, "/");
+  return `/@fs/${normalized}`;
+};
 const workspacePluginPackageNames = Object.keys({
   ...(packageManifest.dependencies ?? {}),
   ...(packageManifest.devDependencies ?? {}),

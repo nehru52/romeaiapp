@@ -41,7 +41,7 @@ export function Navigation() {
         >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <Zap className={`transition-all duration-500 ${scrolled ? "w-4 h-4" : "w-5 h-5"}`} />
+            <Zap className={`transition-all duration-500 text-brand-indigo ${scrolled ? "w-4 h-4" : "w-5 h-5"}`} />
             <span className={`font-display tracking-tight transition-all duration-500 ${scrolled ? "text-xl" : "text-2xl"}`}>
               Optimus AI
             </span>

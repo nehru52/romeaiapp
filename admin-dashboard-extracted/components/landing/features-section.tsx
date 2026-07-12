@@ -219,7 +219,7 @@ function FeatureCard({
     >
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 py-10 lg:py-14 border-b border-border/50">
         {/* Number */}
-        <span className="shrink-0 font-mono text-sm text-muted-foreground/50">
+        <span className="shrink-0 font-mono text-sm text-muted-foreground/40 group-hover:text-brand-indigo transition-colors duration-500">
           {feature.number}
         </span>
 

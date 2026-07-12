@@ -84,7 +84,7 @@ export function TestimonialsSection() {
         </div>
 
         {/* Testimonial Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {TESTIMONIALS.map((t, i) => (
             <div
               key={t.author}

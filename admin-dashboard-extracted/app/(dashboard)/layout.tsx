@@ -10,11 +10,11 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background">
+      <div className="relative min-h-screen bg-background noise-overlay">
         <Sidebar />
         <div className="lg:pl-72">
           <Header />
-          <main className="p-4 md:p-6 lg:p-8">{children}</main>
+          <main className="relative z-10 p-4 md:p-6 lg:p-8 fade-in-up">{children}</main>
         </div>
       </div>
     </SidebarProvider>

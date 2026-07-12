@@ -141,6 +141,20 @@ export default defineConfig({
           "plugins/plugin-app-control/src/$1",
         ),
       },
+      {
+        find: /^@elizaos\/plugin-task-coordinator$/,
+        replacement: path.join(
+          monorepoRoot,
+          "plugins/plugin-task-coordinator/src/index.ts",
+        ),
+      },
+      {
+        find: /^@elizaos\/plugin-task-coordinator\/(.+)$/,
+        replacement: path.join(
+          monorepoRoot,
+          "plugins/plugin-task-coordinator/src/$1",
+        ),
+      },
     ],
   },
   test: {
@@ -165,6 +179,7 @@ export default defineConfig({
       "**/*.live.e2e.test.{ts,tsx}",
       "**/*.real.test.{ts,tsx}",
       "**/*-real.test.{ts,tsx}",
+      "**/view-llm-eval.test.{ts,tsx}",
     ],
   },
 });

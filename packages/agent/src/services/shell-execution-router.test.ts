@@ -52,29 +52,35 @@ describe("runShell", () => {
     await fsp.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it("local-yolo runs commands on the host", async () => {
-    const result = await runShell({
-      command: "/bin/sh",
-      args: ["-c", "printf hello"],
-      toolName: "test:host",
-      timeoutMs: 5_000,
-    });
-    expect(result.sandbox).toBe("host");
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toBe("hello");
-    expect(result.stderr).toBe("");
-  });
+  it.skipIf(process.platform === "win32")(
+    "local-yolo runs commands on the host",
+    async () => {
+      const result = await runShell({
+        command: "/bin/sh",
+        args: ["-c", "printf hello"],
+        toolName: "test:host",
+        timeoutMs: 5_000,
+      });
+      expect(result.sandbox).toBe("host");
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toBe("hello");
+      expect(result.stderr).toBe("");
+    },
+  );
 
-  it("local-yolo defaults to local-yolo when no mode is set", async () => {
-    const result = await runShell({
-      command: "/bin/sh",
-      args: ["-c", "echo hello"],
-      toolName: "test:default",
-      timeoutMs: 5_000,
-    });
-    expect(result.sandbox).toBe("host");
-    expect(result.stdout).toBe("hello\n");
-  });
+  it.skipIf(process.platform === "win32")(
+    "local-yolo defaults to local-yolo when no mode is set",
+    async () => {
+      const result = await runShell({
+        command: "/bin/sh",
+        args: ["-c", "echo hello"],
+        toolName: "test:default",
+        timeoutMs: 5_000,
+      });
+      expect(result.sandbox).toBe("host");
+      expect(result.stdout).toBe("hello\n");
+    },
+  );
 
   it("cloud rejects local shell execution with the documented error", async () => {
     process.env.ELIZA_RUNTIME_MODE = "cloud";

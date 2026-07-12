@@ -101,7 +101,7 @@ export function PricingSection() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-px bg-border/50 max-w-5xl mx-auto overflow-hidden rounded-2xl">
+        <div className="grid md:grid-cols-3 gap-px bg-border/50 max-w-5xl mx-auto overflow-hidden rounded-2xl stagger-children">
           {TIERS.map((tier, i) => (
             <div
               key={tier.name}
@@ -113,7 +113,7 @@ export function PricingSection() {
               style={{ transitionDelay: `${i * 100}ms` }}
             >
               {tier.featured && (
-                <span className="absolute -top-3 left-8 px-3 py-1 bg-foreground text-background text-xs font-mono uppercase tracking-widest rounded-full">
+                <span className="absolute -top-3 left-8 px-3 py-1 bg-brand-amber text-background text-xs font-mono uppercase tracking-widest rounded-full">
                   Most popular
                 </span>
               )}
