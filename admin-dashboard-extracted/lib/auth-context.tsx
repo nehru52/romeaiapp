@@ -175,7 +175,8 @@ function AuthStateManager({ children }: { children: ReactNode }) {
         credentials: "include",
         body: JSON.stringify({}),
       });
-      await update(); // Refresh session to get updated onboardingComplete
+      // Pass onboardingComplete directly to JWT callback — avoids Supabase query
+      await update({ onboardingComplete: true });
     } catch {
       // Non-critical — session still valid
     }

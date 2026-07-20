@@ -71,25 +71,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
 
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account, trigger, session }) {
       // On first sign-in, persist user info to token
       if (user) {
         token.userId = (user as any).authServiceUserId ?? user.id!;
         token.email = user.email!;
         token.name = user.name!;
-        // Carry onboarding status from authorize result
+        // Carry onboarding status from authorize result (no Supabase query needed)
         if ((user as any).onboardingComplete !== undefined) {
           token.onboardingComplete = (user as any).onboardingComplete;
         }
       }
 
-      // On subsequent requests, refresh onboarding status from Supabase
+      // On update(), refresh onboarding status from session data
+      // (passed by completeOnboarding via update({ onboardingComplete: true }))
+      // or from the authorize() result already in the token.
+      // NEVER query Supabase here — the authorize() result is authoritative.
       if (token.userId && trigger === "update") {
-        try {
-          token.onboardingComplete = await isOnboardingComplete(token.email as string);
-        } catch { /* keep existing value */ }
+        if (session?.onboardingComplete !== undefined) {
+          token.onboardingComplete = session.onboardingComplete;
+        }
+        // If session didn't provide onboardingComplete, keep the token's existing value.
+        // This avoids overwriting a correct authorize() result with a stale/failed Supabase query.
       }
 
+      // Fallback: if token still has no onboardingComplete after all paths,
+      // query Supabase ONCE as a last resort.
       if (token.userId && token.onboardingComplete === undefined) {
         try {
           token.onboardingComplete = await isOnboardingComplete(token.email as string);
