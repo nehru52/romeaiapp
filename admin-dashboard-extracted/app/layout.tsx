@@ -1,14 +1,26 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 import { ClientProviders } from "@/components/client-providers";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "Optimus AI — Social Media Automation SaaS",
-  description: "Multi-tenant SaaS platform for AI-powered social media automation. Any business, any niche.",
+  title: "Optimus AI — AI-Powered Social Media Automation",
+  description:
+    "Turn any website into a fully automated social media engine. DeepSeek-powered AI scans your site, detects your niche, and generates a 30-day content calendar — in under 60 seconds.",
+  keywords: [
+    "AI social media",
+    "content automation",
+    "social media scheduler",
+    "AI content generator",
+    "DeepSeek AI",
+    "social media calendar",
+  ],
+  openGraph: {
+    title: "Optimus AI — AI-Powered Social Media Automation",
+    description:
+      "Turn any website into a fully automated social media engine. Powered by DeepSeek.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -18,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans antialiased bg-background text-foreground">
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

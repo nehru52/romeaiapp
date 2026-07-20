@@ -600,7 +600,7 @@ function removeLocalPathReferences(
   let cleaned = replaceAttachedArtifactMarkdownLinks(text, attachments);
   const titles: string[] = [];
   for (const attachment of attachments) {
-    if (!attachment.url.startsWith("/")) continue;
+    if (!path.isAbsolute(attachment.url)) continue;
     const title = attachment.title || path.basename(attachment.url);
     titles.push(title);
     const escapedPath = escapeRegExp(attachment.url);
@@ -661,10 +661,14 @@ function replaceAttachedArtifactMarkdownLinks(
 
 function extractLocalArtifactPaths(text: string): string[] {
   const paths = new Set<string>();
-  for (const match of text.matchAll(/`(\/[^`\n]+)`/gu)) {
+  // Match backtick-quoted paths: `/path/to/file` or `C:\path\to\file`
+  for (const match of text.matchAll(/`([A-Za-z]:[/\\][^`\n]+|\/[^`\n]+)`/gu)) {
     paths.add(match[1]);
   }
-  for (const match of text.matchAll(/(?:^|\s)(\/[^\s"'`<>|]+)/gmu)) {
+  // Match bare absolute paths (Unix or Windows) in running text.
+  for (const match of text.matchAll(
+    /(?:^|\s)([A-Za-z]:[/\\][^\s"'`<>|]+|\/[^\s"'`<>|]+)/gmu,
+  )) {
     paths.add(match[1].replace(/[),.;:!?]+$/u, ""));
   }
   return [...paths];

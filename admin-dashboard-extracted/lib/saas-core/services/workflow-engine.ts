@@ -58,13 +58,14 @@ export class WorkflowEngine {
     userId: string,
     niche: string,
     packSlug?: string,
+    businessDescription?: string,
   ): Promise<{
     onboarding: OnboardingState;
     pack: unknown;
   }> {
     const slug = packSlug ?? niche.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     // setNiche now auto-creates onboarding state (serverless resilience — never returns null)
-    const state = this.auth.setNiche(userId, niche, slug);
+    const state = this.auth.setNiche(userId, niche, slug, businessDescription);
 
     const pack =
       this.packs.getPack(slug) ??
@@ -227,17 +228,21 @@ export class WorkflowEngine {
       const result = await this.content.generateContent({
         tenantId: params.tenantId,
         type: contentType === "carousel" ? "carousel" : "reel",
-        topic: revResult.hook, // Use viral hook as topic
+        topic: revResult?.hook || topic, // Use viral hook if available, else topic
         platform: params.platform,
         category,
       });
 
-      // Merge reverse-engineered structure with AI-generated body
-      generated.push({
-        ...result.content,
-        title: revResult.hook,
-        excerpt: `${revResult.body.slice(0, 200)}...`,
-      });
+      // Merge reverse-engineered structure with AI-generated body if revResult exists
+      if (revResult?.hook) {
+        generated.push({
+          ...result.content,
+          title: revResult.hook,
+          excerpt: `${revResult.body?.slice(0, 200) ?? result.content.body.slice(0, 200)}...`,
+        });
+      } else {
+        generated.push(result.content);
+      }
 
       // Cache the result
       promptCache.set(

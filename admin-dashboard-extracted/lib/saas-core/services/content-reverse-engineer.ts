@@ -7,6 +7,7 @@
  * with the agency brand - 1 API call instead of 5.
  */
 
+import { agentReachBridge, type AgentReachBridge } from "./agent-reach-bridge";
 import type {
   ExtractedPattern,
   HashtagCluster,
@@ -272,20 +273,50 @@ const CTAS_BY_PLATFORM: Record<string, string[]> = {
 export class ContentReverseEngineer {
   private formulaLibrary: Map<string, ViralFormula> = new Map();
   private scrapedPosts: ScrapedTopPost[] = [];
+  private bridge: AgentReachBridge;
 
-  constructor() {
+  constructor(bridge?: AgentReachBridge) {
+    this.bridge = bridge ?? agentReachBridge;
     this.buildFormulaLibrary();
   }
 
   async scrapeTopContent(req: ViralContentRequest): Promise<ScrapedTopPost[]> {
-    const posts = this.generateMockTopPosts(
+    const count = req.scrapeCount ?? 20;
+
+    // Try Agent-Reach bridge first (real scraping)
+    try {
+      const realPosts = await this.bridge.scrapePlatform(
+        req.platform,
+        req.niche,
+        req.contentType,
+        count,
+      );
+      if (realPosts.length >= 5) {
+        // Require at least 5 real posts to trust the result
+        this.scrapedPosts.push(...realPosts);
+        console.log(
+          `[ContentReverseEngineer] Agent-Reach scraped ${realPosts.length} posts for ${req.platform}/${req.niche}`,
+        );
+        return realPosts;
+      }
+    } catch (e: any) {
+      console.log(
+        `[ContentReverseEngineer] Agent-Reach scrape failed for ${req.platform}: ${e?.message ?? e}`,
+      );
+    }
+
+    // Fallback to mock data
+    const mockPosts = this.generateMockTopPosts(
       req.niche,
       req.platform,
       req.contentType,
-      req.scrapeCount ?? 20,
+      count,
     );
-    this.scrapedPosts.push(...posts);
-    return posts;
+    this.scrapedPosts.push(...mockPosts);
+    console.log(
+      `[ContentReverseEngineer] Using ${mockPosts.length} mock posts for ${req.platform}/${req.niche}`,
+    );
+    return mockPosts;
   }
 
   extractPatterns(posts: ScrapedTopPost[]): ExtractedPattern {

@@ -19,6 +19,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import type http from "node:http";
 import os from "node:os";
 import path from "node:path";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   generateViewHeroSvg,
@@ -354,7 +355,9 @@ describe("stage 4: GET /api/views/:id/bundle.js serves the view bundle", () => {
     expect(entry).toBeDefined();
     if (!entry) throw new Error("Expected smoke.main to be registered");
     const diskPath = getBundleDiskPath(entry);
-    expect(diskPath).toBe("/some/plugin/dir/dist/views/bundle.js");
+    expect(diskPath).toBe(
+      path.resolve("/some/plugin/dir", "dist/views/bundle.js"),
+    );
   });
 
   it("serves relative chunks emitted beside the root bundle", async () => {

@@ -144,17 +144,21 @@ export default function CalendarView({
             >
               <span style={styles.dayNum}>{day}</span>
               {dayEvents.length > 0 && (
-                <div style={styles.dots}>
-                  {dayEvents.slice(0, 3).map((ev, i) => (
+                <div style={styles.platformLabels}>
+                  {[...new Set(dayEvents.map(e => e.platform))].slice(0, 2).map((plat, i) => (
                     <span
                       key={i}
                       style={{
-                        ...styles.dot,
-                        backgroundColor:
-                          PLATFORM_COLORS[ev.platform] ?? PLATFORM_COLORS["default"],
+                        ...styles.platformLabel,
+                        backgroundColor: PLATFORM_COLORS[plat] ?? PLATFORM_COLORS["default"],
                       }}
-                    />
+                    >
+                      {plat.slice(0, 3)}
+                    </span>
                   ))}
+                  {dayEvents.length > 2 && (
+                    <span style={styles.moreLabel}>+{dayEvents.length - 2}</span>
+                  )}
                 </div>
               )}
             </button>
@@ -277,7 +281,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    background: "transparent",
+    backgroundColor: "transparent",
     border: "1px solid transparent",
     borderRadius: 8,
     cursor: "pointer",
@@ -296,15 +300,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 500,
   },
-  dots: {
+  platformLabels: {
     display: "flex",
     gap: 2,
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: "50%",
-    display: "inline-block",
+  platformLabel: {
+    fontSize: 8,
+    fontWeight: 700,
+    padding: "1px 4px",
+    borderRadius: 3,
+    color: "#fff",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  moreLabel: {
+    fontSize: 8,
+    color: "#666",
+    fontWeight: 600,
   },
   eventPanel: {
     marginTop: 16,

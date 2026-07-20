@@ -195,8 +195,11 @@ describe("applySubscriptionCredentials", () => {
 
     const providerDir = path.join(home, "auth", "openai-codex");
     const accountFile = path.join(providerDir, "personal.json");
-    expect(fs.statSync(providerDir).mode & 0o777).toBe(0o700);
-    expect(fs.statSync(accountFile).mode & 0o777).toBe(0o600);
+    // POSIX permission bits are not enforced on Windows (NTFS).
+    if (process.platform !== "win32") {
+      expect(fs.statSync(providerDir).mode & 0o777).toBe(0o700);
+      expect(fs.statSync(accountFile).mode & 0o777).toBe(0o600);
+    }
   });
 
   it("skips malformed and provider-mismatched credential files", () => {
