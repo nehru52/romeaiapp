@@ -1,8 +1,6 @@
 {
-  "buildCommand": "bun install && bun run build",
-  "outputDirectory": ".next",
-  "installCommand": "bun install",
   "framework": "nextjs",
+  "outputDirectory": ".next",
   "rewrites": [
     {
       "source": "/api/:path*",
