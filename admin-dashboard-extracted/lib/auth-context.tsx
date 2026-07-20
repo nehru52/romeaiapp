@@ -137,24 +137,17 @@ function AuthStateManager({ children }: { children: ReactNode }) {
       throw new Error(msg);
     }
 
-    await update(); // Refresh session to get onboardingComplete
-
-    // Check if onboarding is complete for redirect
-    const updatedSession = await update();
-    const complete = (updatedSession?.user as any)?.onboardingComplete ?? false;
-    if (complete) {
-      router.push("/dashboard");
-    } else {
-      router.push("/onboarding");
-    }
-  }, [router, update]);
+    // Existing users always go to dashboard.
+    // New users come through signup() which goes to /onboarding.
+    router.push("/dashboard");
+  }, [router]);
 
   // ── Google OAuth ───────────────────────────────────────────────────
 
   const loginWithGoogle = useCallback(async () => {
     setError(null);
     await authSignIn("google", {
-      callbackUrl: "/onboarding",
+      callbackUrl: "/dashboard",
     });
   }, []);
 
