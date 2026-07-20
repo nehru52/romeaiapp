@@ -85,45 +85,55 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async jwt({ token, user, account, trigger, session }) {
+      console.log("[jwt] trigger:", trigger, "hasUser:", !!user, "token.onboardingComplete:", token.onboardingComplete, "session?.onboardingComplete:", session?.onboardingComplete);
       // On first sign-in, persist user info to token
       if (user) {
         token.userId = (user as any).authServiceUserId ?? user.id!;
         token.email = user.email!;
         token.name = user.name!;
+        console.log("[jwt] user.id:", user.id, "user.onboardingComplete:", (user as any).onboardingComplete);
         // Carry onboarding status from authorize result (no Supabase query needed)
         if ((user as any).onboardingComplete !== undefined) {
           token.onboardingComplete = (user as any).onboardingComplete;
+          console.log("[jwt] set token.onboardingComplete from user:", token.onboardingComplete);
+        } else {
+          console.log("[jwt] user.onboardingComplete is undefined — Auth.js may have stripped it");
         }
       }
 
       // On update(), refresh onboarding status from session data
-      // (passed by completeOnboarding via update({ onboardingComplete: true }))
-      // or from the authorize() result already in the token.
-      // NEVER query Supabase here — the authorize() result is authoritative.
       if (token.userId && trigger === "update") {
         if (session?.onboardingComplete !== undefined) {
           token.onboardingComplete = session.onboardingComplete;
+          console.log("[jwt] update: set token.onboardingComplete from session:", token.onboardingComplete);
+        } else {
+          console.log("[jwt] update: no session data, keeping existing:", token.onboardingComplete);
         }
-        // If session didn't provide onboardingComplete, keep the token's existing value.
-        // This avoids overwriting a correct authorize() result with a stale/failed Supabase query.
       }
 
-      // Fallback: if token still has no onboardingComplete after all paths,
-      // query Supabase ONCE as a last resort.
+      // Fallback: if token still has no onboardingComplete after all paths
       if (token.userId && token.onboardingComplete === undefined) {
+        console.log("[jwt] fallback: token.onboardingComplete undefined, querying Supabase");
         try {
           token.onboardingComplete = await isOnboardingComplete(token.email as string);
-        } catch { token.onboardingComplete = false; }
+          console.log("[jwt] fallback: Supabase returned:", token.onboardingComplete);
+        } catch { console.log("[jwt] fallback: Supabase query failed"); token.onboardingComplete = false; }
       }
 
+      console.log("[jwt] returning token.onboardingComplete:", token.onboardingComplete);
       return token;
     },
 
     async session({ session, token }) {
+      console.log("[session] token.onboardingComplete:", token.onboardingComplete);
       if (session.user) {
         session.user.id = token.userId as string;
         (session as any).userId = token.userId as string;
         (session as any).onboardingComplete = token.onboardingComplete ?? false;
+      }
+      console.log("[session] session.onboardingComplete:", (session as any).onboardingComplete);
+      return session;
+    },
       }
       return session;
     },
