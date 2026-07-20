@@ -129,9 +129,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.userId as string;
         (session as any).userId = token.userId as string;
-        (session as any).onboardingComplete = token.onboardingComplete ?? false;
+        // Nest under user — Auth.js preserves session.user properties for client
+        (session.user as any).onboardingComplete = token.onboardingComplete ?? false;
       }
-      console.log("[session] session.onboardingComplete:", (session as any).onboardingComplete);
+      console.log("[session] session.user.onboardingComplete:", (session.user as any)?.onboardingComplete);
       return session;
     },
   },

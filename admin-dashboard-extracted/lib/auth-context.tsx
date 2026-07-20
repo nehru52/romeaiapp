@@ -80,7 +80,7 @@ function AuthStateManager({ children }: { children: ReactNode }) {
       }
     : null;
 
-  const onboardingComplete: boolean = sessionData?.onboardingComplete ?? false;
+  const onboardingComplete: boolean = (session?.user as any)?.onboardingComplete ?? false;
 
   const [error, setError] = useState<string | null>(null);
 
@@ -141,7 +141,7 @@ function AuthStateManager({ children }: { children: ReactNode }) {
 
     // Check if onboarding is complete for redirect
     const updatedSession = await update();
-    const complete = (updatedSession as any)?.onboardingComplete ?? false;
+    const complete = (updatedSession?.user as any)?.onboardingComplete ?? false;
     if (complete) {
       router.push("/dashboard");
     } else {
