@@ -1,18 +1,10 @@
 {
-  "buildCommand": "cd admin-dashboard-extracted && bun install && bun run build",
-  "outputDirectory": "admin-dashboard-extracted/.next",
-  "installCommand": "cd admin-dashboard-extracted && bun install",
   "framework": "nextjs",
+  "outputDirectory": "admin-dashboard-extracted/.next",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     }
-  ],
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs22.x",
-      "maxDuration": 60
-    }
-  }
+  ]
 }
