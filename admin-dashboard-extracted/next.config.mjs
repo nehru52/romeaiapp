@@ -13,10 +13,11 @@ const nextConfig = {
     unoptimized: true,
   },
   outputFileTracingRoot: __dirname,
+  // Prevent Next.js from bundling Supabase client — avoids 'TypeError: fetch failed'
+  // in serverless functions where bundled fetch internals can break.
+  serverExternalPackages: ["@supabase/supabase-js", "@supabase/postgrest-js", "@supabase/ssr"],
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Fallbacks for Node.js built-ins used in shared server code
-      // that webpack encounters via import chains
       config.resolve.fallback = {
         ...config.resolve.fallback,
         crypto: false,
