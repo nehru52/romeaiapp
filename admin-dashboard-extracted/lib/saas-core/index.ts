@@ -74,7 +74,14 @@ export {
   TelegramBot,
 } from "./services/telegram-bot";
 export { TenantService } from "./services/tenant-service";
+// Agent-Reach Bridge & Trend Detector
+export { AgentReachBridge, agentReachBridge } from "./services/agent-reach-bridge";
+export { TrendDetector, trendDetector } from "./services/trend-detector";
+export type { TrendingReport, TrendSignal } from "./services/trend-detector";
+
 export { WorkflowEngine } from "./services/workflow-engine";
+// ── Website Scraper (Firecrawl) ────────────────────────────────────────
+export { WebsiteScraper, websiteScraper } from "./services/website-scraper";
 // ── Types ────────────────────────────────────────────────────────────
 export * from "./types";
 

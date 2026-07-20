@@ -1,8 +1,11 @@
 /**
- * Auth context and provider — session management, login/signup, protected routes.
+ * Auth context — thin wrapper around Auth.js v5 SessionProvider.
  *
- * Stores session in localStorage for persistence across page reloads.
- * All API calls go through the saas-core Hono router at /api/*.
+ * Session is stored in an encrypted httpOnly cookie managed by Auth.js.
+ * Frontend NEVER accesses the token directly (XSS-proof).
+ *
+ * Uses `useSession` from `next-auth/react` for session state.
+ * Business logic (onboarding, tenant linking) lives in AuthService.
  */
 
 "use client";
@@ -11,11 +14,17 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import {
+  SessionProvider,
+  signIn as authSignIn,
+  signOut as authSignOut,
+  useSession,
+} from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -36,63 +45,11 @@ export interface AuthState {
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
-  loginWithGoogle: (code: string, redirectUri?: string, intent?: "login" | "signup") => Promise<void>;
-  logout: () => void;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
   clearError: () => void;
   completeOnboarding: () => Promise<void>;
   refreshSession: () => Promise<void>;
-}
-
-// ── Constants ────────────────────────────────────────────────────────
-
-const STORAGE_KEY = "optimus_auth";
-const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-function loadFromStorage(): { user: User | null; onboardingComplete: boolean } {
-  if (typeof window === "undefined") return { user: null, onboardingComplete: false };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { user: null, onboardingComplete: false };
-    const data = JSON.parse(raw);
-    // Check session expiry
-    if (data.expiresAt && Date.now() > data.expiresAt) {
-      localStorage.removeItem(STORAGE_KEY);
-      return { user: null, onboardingComplete: false };
-    }
-    return {
-      user: data.user ?? null,
-      onboardingComplete: data.onboardingComplete ?? false,
-    };
-  } catch {
-    return { user: null, onboardingComplete: false };
-  }
-}
-
-function saveToStorage(user: User | null, onboardingComplete: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        user,
-        onboardingComplete,
-        expiresAt: Date.now() + SESSION_TTL,
-      })
-    );
-  } catch {
-    // localStorage full or unavailable — session remains in-memory only
-  }
-}
-
-function clearStorage(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
-  }
 }
 
 // ── Context ──────────────────────────────────────────────────────────
@@ -100,273 +57,143 @@ function clearStorage(): void {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>(() => {
-    const stored = loadFromStorage();
-    return {
-      user: stored.user,
-      isLoading: true,
-      isAuthenticated: !!stored.user,
-      onboardingComplete: stored.onboardingComplete,
-      error: null,
-    };
-  });
-
-  // Hydrate from localStorage on mount
-  useEffect(() => {
-    const stored = loadFromStorage();
-    setState({
-      user: stored.user,
-      isLoading: false,
-      isAuthenticated: !!stored.user,
-      onboardingComplete: stored.onboardingComplete,
-      error: null,
-    });
-  }, []);
-
-  const clearError = useCallback(() => {
-    setState((prev) => ({ ...prev, error: null }));
-  }, []);
-
-  // Email + password signup
-  const signup = useCallback(
-    async (email: string, password: string, name: string) => {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      try {
-        const res = await fetch("/api/auth/email/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, name }),
-        });
-        const text = await res.text();
-        let data: any;
-        try { data = JSON.parse(text); } catch {
-          throw new Error(`Server error (${res.status}) — please try again. If this persists, check that the server is running.`);
-        }
-        if (!data.success) {
-          throw new Error(data.error ?? "Signup failed");
-        }
-        const user: User = {
-          userId: data.data.userId,
-          name: data.data.name ?? name,
-          email,
-        };
-        saveToStorage(user, false);
-        setState({
-          user,
-          isLoading: false,
-          isAuthenticated: true,
-          onboardingComplete: false,
-          error: null,
-        });
-      } catch (err: any) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: err.message ?? "Signup failed. Please try again.",
-        }));
-        throw err;
-      }
-    },
-    []
+  return (
+    <SessionProvider>
+      <AuthStateManager>{children}</AuthStateManager>
+    </SessionProvider>
   );
+}
 
-  // Email + password login
-  const login = useCallback(async (email: string, password: string) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      const res = await fetch("/api/auth/email/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const text = await res.text();
-      let data: any;
-      try { data = JSON.parse(text); } catch {
-        throw new Error(`Server error (${res.status}) — please try again.`);
+function AuthStateManager({ children }: { children: ReactNode }) {
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
+
+  const isLoading = status === "loading";
+  const isAuthenticated = status === "authenticated";
+  const sessionData = session as any;
+
+  const user: User | null = isAuthenticated && session?.user
+    ? {
+        userId: sessionData?.userId ?? session.user.id ?? "",
+        name: session.user.name ?? "",
+        email: session.user.email ?? "",
       }
-      if (!data.success) {
-        throw new Error(data.error ?? "Login failed");
-      }
-      const user: User = {
-        userId: data.data.userId,
-        name: data.data.name ?? email.split("@")[0]!,
-        email,
-      };
-      const onboardingComplete = data.data.onboardingComplete ?? false;
-      saveToStorage(user, onboardingComplete);
-      setState({
-        user,
-        isLoading: false,
-        isAuthenticated: true,
-        onboardingComplete,
-        error: null,
-      });
-    } catch (err: any) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: err.message ?? "Invalid email or password.",
-      }));
-      throw err;
+    : null;
+
+  const onboardingComplete: boolean = sessionData?.onboardingComplete ?? false;
+
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = useCallback(() => setError(null), []);
+
+  // ── Email + password signup ────────────────────────────────────────
+
+  const signup = useCallback(async (email: string, password: string, name: string) => {
+    setError(null);
+    // Create user account first
+    const res = await fetch("/api/auth/email/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password, name }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      const msg = data.error ?? "Signup failed";
+      setError(msg);
+      throw new Error(msg);
     }
-  }, []);
 
-  // Google OAuth login — intent drives behavior
-  const loginWithGoogle = useCallback(
-    async (code: string, redirectUri?: string, intent: "login" | "signup" = "signup") => {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      try {
-        const redirect = redirectUri ?? (typeof window !== "undefined" ? window.location.origin + "/auth/callback" : "");
+    // Sign in with the new credentials
+    const result = await authSignIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-        if (intent === "login") {
-          // Login tab: only log in existing users. If not found, show error.
-          const loginRes = await fetch("/api/auth/google", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code, redirectUri: redirect, intent: "login" }),
-          });
-          const loginText = await loginRes.text();
-          let loginData: any;
-          try { loginData = JSON.parse(loginText); } catch {
-            throw new Error(`Server error (${loginRes.status}) — please try again.`);
-          }
-          if (!loginData.success) {
-            throw new Error(loginData.error ?? "Google login failed");
-          }
-          const loginUser: User = {
-            userId: loginData.data.userId,
-            name: loginData.data.name ?? "User",
-            email: loginData.data.email ?? "",
-          };
-          saveToStorage(loginUser, loginData.data.onboardingComplete ?? false);
-          setState({
-            user: loginUser,
-            isLoading: false,
-            isAuthenticated: true,
-            onboardingComplete: loginData.data.onboardingComplete ?? false,
-            error: null,
-          });
-          return;
-        }
+    if (result?.error) {
+      setError(result.error);
+      throw new Error(result.error);
+    }
 
-        // Signup tab: create new account. If already exists, fall back to login.
-        const res = await fetch("/api/auth/google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, redirectUri: redirect, intent: "signup" }),
-        });
-        const gText = await res.text();
-        let data: any;
-        try { data = JSON.parse(gText); } catch {
-          throw new Error(`Server error (${res.status}) — please try again.`);
-        }
-        if (!data.success) {
-          // If user already exists, fall back to login intent
-          if (data.error?.includes("already exists")) {
-            const fallbackRes = await fetch("/api/auth/google", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ code, redirectUri: redirect, intent: "login" }),
-            });
-            const fbText = await fallbackRes.text();
-            let fbData: any;
-            try { fbData = JSON.parse(fbText); } catch {
-              throw new Error(`Server error (${fallbackRes.status}) — please try again.`);
-            }
-            if (!fbData.success) {
-              throw new Error(fbData.error ?? "Google login failed");
-            }
-            const fbUser: User = {
-              userId: fbData.data.userId,
-              name: fbData.data.name ?? "User",
-              email: fbData.data.email ?? "",
-            };
-            saveToStorage(fbUser, fbData.data.onboardingComplete ?? false);
-            setState({
-              user: fbUser,
-              isLoading: false,
-              isAuthenticated: true,
-              onboardingComplete: fbData.data.onboardingComplete ?? false,
-              error: null,
-            });
-            return;
-          }
-          throw new Error(data.error ?? "Google signup failed");
-        }
-        const user: User = {
-          userId: data.data.userId,
-          name: data.data.name ?? "User",
-          email: data.data.email ?? "",
-        };
-        saveToStorage(user, data.data.onboardingComplete ?? false);
-        setState({
-          user,
-          isLoading: false,
-          isAuthenticated: true,
-          onboardingComplete: data.data.onboardingComplete ?? false,
-          error: null,
-        });
-      } catch (err: any) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: err.message ?? "Google login failed. Please try again.",
-        }));
-        throw err;
-      }
-    },
-    []
-  );
+    router.push("/onboarding");
+  }, [router]);
 
-  // Logout
-  const logout = useCallback(() => {
-    clearStorage();
-    setState({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      onboardingComplete: false,
-      error: null,
+  // ── Email + password login ─────────────────────────────────────────
+
+  const login = useCallback(async (email: string, password: string) => {
+    setError(null);
+    const result = await authSignIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      const msg = result.error === "CredentialsSignin"
+        ? "Invalid email or password."
+        : result.error;
+      setError(msg);
+      throw new Error(msg);
+    }
+
+    await update(); // Refresh session to get onboardingComplete
+
+    // Check if onboarding is complete for redirect
+    const updatedSession = await update();
+    const complete = (updatedSession as any)?.onboardingComplete ?? false;
+    if (complete) {
+      router.push("/dashboard");
+    } else {
+      router.push("/onboarding");
+    }
+  }, [router, update]);
+
+  // ── Google OAuth ───────────────────────────────────────────────────
+
+  const loginWithGoogle = useCallback(async () => {
+    setError(null);
+    await authSignIn("google", {
+      callbackUrl: "/onboarding",
     });
   }, []);
 
-  // Mark onboarding complete
+  // ── Logout ─────────────────────────────────────────────────────────
+
+  const logout = useCallback(async () => {
+    await authSignOut({ redirect: false });
+    router.push("/login");
+  }, [router]);
+
+  // ── Onboarding ─────────────────────────────────────────────────────
+
   const completeOnboarding = useCallback(async () => {
-    if (!state.user) return;
     try {
       await fetch("/api/auth/onboarding-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: state.user.userId }),
+        credentials: "include",
+        body: JSON.stringify({}),
       });
-      const updated = true;
-      saveToStorage(state.user, updated);
-      setState((prev) => ({ ...prev, onboardingComplete: true }));
+      await update(); // Refresh session to get updated onboardingComplete
     } catch {
-      // Non-critical — onboarding state is also stored on server
+      // Non-critical — session still valid
     }
-  }, [state.user]);
+  }, [update]);
 
-  // Refresh session from server
+  // ── Refresh ────────────────────────────────────────────────────────
+
   const refreshSession = useCallback(async () => {
-    if (!state.user) return;
-    try {
-      const res = await fetch(`/api/auth/session/${state.user.userId}`);
-      const data = await res.json();
-      if (data.success && data.data) {
-        const onboardingComplete =
-          data.data.onboardingComplete ?? state.onboardingComplete;
-        saveToStorage(state.user, onboardingComplete);
-        setState((prev) => ({ ...prev, onboardingComplete }));
-      }
-    } catch {
-      // Server unavailable — keep local session
-    }
-  }, [state.user, state.onboardingComplete]);
+    await update();
+  }, [update]);
 
   const value = useMemo(
     () => ({
-      ...state,
+      user,
+      isLoading,
+      isAuthenticated,
+      onboardingComplete,
+      error,
       login,
       signup,
       loginWithGoogle,
@@ -375,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       refreshSession,
     }),
-    [state, login, signup, loginWithGoogle, logout, clearError, completeOnboarding, refreshSession]
+    [user, isLoading, isAuthenticated, onboardingComplete, error, login, signup, loginWithGoogle, logout, clearError, completeOnboarding, refreshSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -385,16 +212,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within an <AuthProvider>");
-  }
+  if (!ctx) throw new Error("useAuth must be used within an <AuthProvider>");
   return ctx;
 }
 
-// ── HOC for protected routes ─────────────────────────────────────────
+// ── HOC ──────────────────────────────────────────────────────────────
 
 export function withAuth<P extends object>(
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
 ): React.FC<P> {
   return function ProtectedComponent(props: P) {
     const { isAuthenticated, isLoading } = useAuth();
@@ -402,12 +227,8 @@ export function withAuth<P extends object>(
     if (isLoading) {
       return (
         <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          backgroundColor: "#0a0a0a",
-          color: "#fff",
+          display: "flex", justifyContent: "center", alignItems: "center",
+          minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#fff",
           fontFamily: "system-ui, sans-serif",
         }}>
           <p>Loading...</p>
@@ -416,12 +237,11 @@ export function withAuth<P extends object>(
     }
 
     if (!isAuthenticated) {
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
+      if (typeof window !== "undefined") window.location.href = "/login";
       return null;
     }
 
     return <Component {...props} />;
   };
 }
+

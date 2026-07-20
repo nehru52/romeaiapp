@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Zap } from "lucide-react";
 
 export default function LoginPage() {
-  const { user, login, signup, loginWithGoogle, isAuthenticated, onboardingComplete, isLoading, error, clearError } = useAuth();
+  const { login, signup, loginWithGoogle, isLoading, error, clearError } = useAuth();
   const router = useRouter();
 
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -78,23 +78,10 @@ export default function LoginPage() {
   };
 
   const handleGoogle = () => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "459672196990-16u7i5fmlsks21pp4j7kvegrsha1sara.apps.googleusercontent.com";
-    const redirectUri = typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback`
-      : "";
-    const scope = "openid profile email";
-    const state = mode; // "login" or "signup" — passed through to callback
-
-    const googleUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${encodeURIComponent(clientId)}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&response_type=code` +
-      `&scope=${encodeURIComponent(scope)}` +
-      `&state=${encodeURIComponent(state)}` +
-      `&access_type=offline` +
-      `&prompt=consent`;
-
-    window.location.href = googleUrl;
+    setLocalError(null);
+    loginWithGoogle().catch((err: any) => {
+      setLocalError(err.message ?? "Google sign-in failed.");
+    });
   };
 
   // ── Forgot Password Handlers ──────────────────────────────────────

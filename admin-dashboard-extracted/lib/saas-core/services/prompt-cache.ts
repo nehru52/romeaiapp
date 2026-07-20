@@ -12,7 +12,7 @@
  * Each tier has its own TTL and eviction policy.
  */
 
-import { createHash } from "node:crypto";
+import { createHash } from "crypto";
 
 // ── Types ──────────────────────────────────────────────────────────────
 

@@ -35,6 +35,15 @@ export default function OnboardingPage() {
     if (!isLoading && !isAuthenticated) router.replace("/login");
   }, [isLoading, isAuthenticated, router]);
 
+  // Block render until auth state resolved — prevents flash of onboarding UI
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-6 h-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const handleNicheSelect = (slug: string) => {
     setSelectedPack(slug);
     setError(null);

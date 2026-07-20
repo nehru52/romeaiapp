@@ -3,6 +3,7 @@
  */
 
 import { dbInsert, dbQuery, dbUpdate } from "../db/adapter";
+import { persistContentMedia } from "./r2-storage";
 import type {
   ContentItem,
   ContentSEO,
@@ -156,7 +157,7 @@ export class ContentService {
 
   /** Load existing content from Supabase. Called after env is available. */
   async loadFromDB(): Promise<void> {
-    if (this.loaded) return;
+    if (this.loaded && this.content.size > 0) return;
     try {
       const rows = await dbQuery<{
         id: string;
@@ -175,7 +176,7 @@ export class ContentService {
         published_at: string | null;
         created_at: string;
         generated_by: string;
-      }>("content_items", undefined, "created_at.desc");
+      }>("content_items", undefined, "-created_at");
 
       for (const r of rows) {
         let featuredProductIds: string[] = [];
@@ -256,7 +257,14 @@ export class ContentService {
     if (request.includeImages !== false && process.env.FAL_KEY) {
       try {
         const imgResult = await generateImages(request, hook);
-        imageUrls.push(...imgResult);
+        // Persist to R2 for permanent URLs (Fal.ai URLs expire)
+        const permanentUrls = await persistContentMedia(
+          imgResult,
+          request.tenantId,
+          contentId,
+          "image",
+        );
+        imageUrls.push(...permanentUrls);
       } catch {
         /* image gen failed — continue without images */
       }
@@ -294,7 +302,7 @@ export class ContentService {
     return this.content.get(id);
   }
 
-  listContent(
+  async listContent(
     tenantId: string,
     filter?: {
       status?: ContentStatus | undefined;
@@ -302,7 +310,12 @@ export class ContentService {
       platform?: string | undefined;
     },
     pagination?: PaginationParams,
-  ): ContentItem[] {
+  ): Promise<ContentItem[]> {
+    // Auto-load from DB if memory is empty (handles server restarts)
+    if (this.content.size === 0) {
+      await this.loadFromDB();
+    }
+
     let results = [...this.content.values()].filter(
       (c) => c.tenantId === tenantId,
     );
