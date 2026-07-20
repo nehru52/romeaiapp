@@ -53,13 +53,22 @@ export async function createUser(params: {
 
 export async function getUserByEmail(email: string): Promise<StoredUser | null> {
   const supabase = getAdminClient();
+  console.log("[user-store] getUserByEmail query for:", email.toLowerCase().trim());
   const { data, error } = await supabase
     .from("users")
     .select("*")
     .eq("email", email.toLowerCase().trim())
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    console.error("[user-store] getUserByEmail Supabase error:", error.message, error.code);
+    return null;
+  }
+  if (!data) {
+    console.error("[user-store] getUserByEmail: no user found for email");
+    return null;
+  }
+  console.log("[user-store] getUserByEmail: user found, onboarding_complete:", data.onboarding_complete);
   return mapRow(data);
 }
 

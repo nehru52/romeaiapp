@@ -12,6 +12,7 @@ let adminClient: ReturnType<typeof createClient> | null = null;
 
 export function getAdminClient() {
   if (!adminClient) {
+    console.log("[supabase/admin] Initializing client. URL set:", !!supabaseUrl, "Key set:", !!supabaseServiceKey);
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error(
         "[supabase/admin] SUPABASE_URL and SUPABASE_SERVICE_KEY must be set.",
