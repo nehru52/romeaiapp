@@ -134,8 +134,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       console.log("[session] session.onboardingComplete:", (session as any).onboardingComplete);
       return session;
     },
-      }
-      return session;
-    },
   },
 });
