@@ -34,6 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
+          onboardingComplete: user.onboardingComplete,
         };
       },
     }),
@@ -76,15 +77,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.userId = (user as any).authServiceUserId ?? user.id!;
         token.email = user.email!;
         token.name = user.name!;
+        // Carry onboarding status from authorize result
+        if ((user as any).onboardingComplete !== undefined) {
+          token.onboardingComplete = (user as any).onboardingComplete;
+        }
       }
 
       // On subsequent requests, refresh onboarding status from Supabase
       if (token.userId && trigger === "update") {
-        token.onboardingComplete = await isOnboardingComplete(token.email as string);
+        try {
+          token.onboardingComplete = await isOnboardingComplete(token.email as string);
+        } catch { /* keep existing value */ }
       }
 
       if (token.userId && token.onboardingComplete === undefined) {
-        token.onboardingComplete = await isOnboardingComplete(token.email as string);
+        try {
+          token.onboardingComplete = await isOnboardingComplete(token.email as string);
+        } catch { token.onboardingComplete = false; }
       }
 
       return token;
