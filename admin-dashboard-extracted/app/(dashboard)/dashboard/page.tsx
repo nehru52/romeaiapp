@@ -48,8 +48,8 @@ export default function DashboardPage() {
     if (!user) return;
     try {
       const [dashRes, analyticsRes] = await Promise.all([
-        fetch(`/api/dashboard/${user.userId}`),
-        fetch("/api/analytics"),
+        fetch("/api/dashboard"),
+        fetch(`/api/analytics/${user.userId}`),
       ]);
       const dash = await dashRes.json();
       const analytics = await analyticsRes.json();

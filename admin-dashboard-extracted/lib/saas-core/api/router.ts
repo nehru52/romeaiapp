@@ -26,6 +26,7 @@ import {
 import { hashPassword, verifyPassword } from "../../auth/password";
 import { rateLimitByIP, rateLimitByEmail } from "../../auth/rate-limit";
 import { createUser as storeCreateUser, getUserByEmail, getUserById, markOnboardingComplete as storeMarkOnboardingComplete, updateUser } from "../../auth/user-store";
+import { getAdminClient } from "../../supabase/admin";
 import { AnalyticsService } from "../services/analytics-service";
 import { AuthService } from "../services/auth-service";
 import { contentReverseEngineer } from "../services/content-reverse-engineer";
@@ -381,3 +382,46 @@ app.get("/api/notifications", requireAuth, async (c) => {
 
 export default app;
 export { app as saasRouter };
+
+/**
+ * Initialize the user store from Supabase on cold start.
+ * Restores sessions and onboarding states so the dashboard has data.
+ */
+export async function initUserStore(): Promise<void> {
+  const supabase = getAdminClient();
+  try {
+    // Load all users and create sessions
+    const { data: users } = await supabase.from("users").select("id, email, name");
+    if (users) {
+      for (const u of users) {
+        authService.ensureSession(u.id, u.email, u.name ?? u.email.split("@")[0]!);
+      }
+      console.log(`[initUserStore] Restored ${users.length} user sessions`);
+    }
+
+    // Load completed onboarding records and restore state
+    const { data: onboardings } = await supabase
+      .from("onboarding")
+      .select("*")
+      .eq("step", "done");
+    if (onboardings) {
+      for (const o of onboardings) {
+        const session = authService.getSession(o.user_id);
+        if (!session) continue;
+        // Restore onboarding state as done
+        const state = authService.getOnboardingState(o.user_id);
+        if (state) {
+          state.step = "done";
+          state.selectedNiche = o.selected_niche ?? null;
+          state.packSlug = o.pack_slug ?? null;
+          state.businessDescription = o.business_description ?? null;
+          state.websiteUrl = o.website_url ?? null;
+          state.websiteAnalysis = o.website_analysis ?? null;
+        }
+      }
+      console.log(`[initUserStore] Restored ${onboardings.length} onboarding states`);
+    }
+  } catch (err: any) {
+    console.error("[initUserStore] Failed to load from Supabase:", err.message);
+  }
+}
