@@ -327,6 +327,17 @@ app.post("/api/reverse-engineer/generate", async (c) => {
 
 // ── Analytics ────────────────────────────────────────────────────────
 
+// Auto-resolve tenant from session (no tenant ID param needed)
+app.get("/api/analytics", requireAuth, async (c) => {
+  const session = c.get("session");
+  const tenantIds = authService.getUserTenants(session.sub);
+  if (!tenantIds || tenantIds.length === 0) {
+    return c.json({ success: true, data: { totalContent: 0, platformBreakdown: {}, trends: [], aiUsage: {} } });
+  }
+  const analytics = await analyticsService.getTenantAnalytics(tenantIds[0]!);
+  return c.json({ success: true, data: analytics });
+});
+
 app.get("/api/analytics/:tenantId", requireAuth, requireTenantAccess, async (c) => {
   const tenantId = c.req.param("tenantId");
   const analytics = await analyticsService.getTenantAnalytics(tenantId);
@@ -370,6 +381,40 @@ app.post("/api/tenants", requireAuth, async (c) => {
   return c.json({ success: true, data: tenant }, 201);
 });
 
+// ── Queue (alias for content with pending status) ────────────────────
+
+app.get("/api/queue/:tenantId", requireAuth, async (c) => {
+  const tenantId = c.req.param("tenantId");
+  const items = await contentService.listContent(tenantId);
+  const pending = items.filter((i: any) => i.status === "pending_approval" || i.status === "draft");
+  return c.json({ success: true, data: pending });
+});
+
+app.post("/api/queue/bulk-approve", requireAuth, async (c) => {
+  const body = await c.req.json();
+  const results: any[] = [];
+  for (const id of (body.ids ?? [])) {
+    const updated = contentService.updateStatus(id, "published");
+    if (updated) results.push(updated);
+  }
+  return c.json({ success: true, data: results });
+});
+
+// ── Trends (stub for now) ───────────────────────────────────────────
+
+app.get("/api/trends", requireAuth, async (c) => {
+  const session = c.get("session");
+  const tenantIds = authService.getUserTenants(session.sub);
+  const tenantId = tenantIds[0];
+  if (!tenantId) return c.json({ success: true, data: { trends: [] } });
+  const content = await contentService.listContent(tenantId);
+  return c.json({ success: true, data: { trends: content ?? [] } });
+});
+
+app.post("/api/trends/generate", requireAuth, async (c) => {
+  return c.json({ success: true, data: { message: "Trend generation queued" } });
+});
+
 // ── Notifications ────────────────────────────────────────────────────
 
 app.get("/api/notifications", requireAuth, async (c) => {
@@ -397,6 +442,17 @@ export async function initUserStore(): Promise<void> {
         authService.ensureSession(u.id, u.email, u.name ?? u.email.split("@")[0]!);
       }
       console.log(`[initUserStore] Restored ${users.length} user sessions`);
+    }
+
+    // Load tenants and link to users (needed for analytics/dashboard APIs)
+    const { data: tenants } = await supabase.from("tenants").select("*");
+    if (tenants) {
+      for (const t of tenants) {
+        if (t.owner_id) {
+          authService.linkTenant(t.owner_id, t.id);
+        }
+      }
+      console.log(`[initUserStore] Restored ${tenants.length} tenants`);
     }
 
     // Load completed onboarding records and restore state
