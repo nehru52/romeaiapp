@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace("/login");
@@ -39,6 +40,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
+    console.log("[dashboard] user loaded, fetching stats. userId:", user.userId);
     loadStats();
     const interval = setInterval(loadStats, 30_000);
     return () => clearInterval(interval);
@@ -47,12 +49,15 @@ export default function DashboardPage() {
   async function loadStats() {
     if (!user) return;
     try {
+      console.log("[dashboard] fetching /api/dashboard and /api/analytics/" + user.userId);
       const [dashRes, analyticsRes] = await Promise.all([
-        fetch("/api/dashboard"),
-        fetch(`/api/analytics/${user.userId}`),
+        fetch("/api/dashboard", { credentials: "include" }),
+        fetch(`/api/analytics/${user.userId}`, { credentials: "include" }),
       ]);
+      console.log("[dashboard] dash status:", dashRes.status, "analytics status:", analyticsRes.status);
       const dash = await dashRes.json();
       const analytics = await analyticsRes.json();
+      console.log("[dashboard] dash:", dash, "analytics:", analytics);
 
       const platforms = dash.data?.platforms ?? [];
       const contentTotal = analytics.data?.totalContent ?? 0;
@@ -74,8 +79,10 @@ export default function DashboardPage() {
         })),
         aiCostThisMonth: (contentTotal || scheduled) * 0.001,
       });
-    } catch {
-      // silently fail — show zeros
+      setLoadError(null);
+    } catch (err: any) {
+      console.error("[dashboard] loadStats error:", err.message);
+      setLoadError(err.message ?? "Failed to load dashboard data");
     } finally {
       setStatsLoading(false);
     }
@@ -87,6 +94,24 @@ export default function DashboardPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 rounded-full border-2 border-muted border-t-foreground animate-spin" />
           <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+          <p className="text-xs text-muted-foreground/50">
+            {isLoading ? "Checking session..." : "User not loaded"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError && !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+            <span className="text-destructive text-lg">!</span>
+          </div>
+          <p className="text-sm text-muted-foreground">Failed to load dashboard data</p>
+          <p className="text-xs text-muted-foreground/50 font-mono">{loadError}</p>
+          <button onClick={() => { setLoadError(null); setStatsLoading(true); loadStats(); }} className="text-xs text-foreground/60 hover:text-foreground underline">Retry</button>
         </div>
       </div>
     );
